@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Allenamento Patente Nautica</title>
+<style>
+body { font-family: sans-serif; margin:0; padding:0; background:#111; color:#eee; }
+.wrapper { max-width:1200px; margin:auto; padding:20px; }
+h2 { font-weight:600; text-align:center; margin-bottom:20px; }
+.card { background:#1a1a1a; padding:20px; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.5); margin:20px 0; }
+section h3 { margin-top:0; margin-bottom:15px; }
+.row { display:flex; flex-wrap:wrap; gap:15px; }
+.col { flex:1; min-width:220px; }
+select, button, input[type=number], input[type=text] {
+  padding:10px 14px; font-size:16px; border-radius:8px; border:1px solid #333; background:#222; color:#eee; box-sizing:border-box;
+}
+button:hover { background:#333; cursor:pointer; }
+#numero { font-size:70px; font-weight:bold; margin:15px 0; text-align:center; word-break:break-word; }
+.badge { display:inline-block; padding:4px 10px; border-radius:6px; font-size:14px; margin:3px; }
+.crit { background:#a00000; color:#fff; }
+.done { background:#2ecc71; color:#111; }
+#testo { text-align:left; margin-top:10px; font-size:18px; line-height:1.4; word-wrap:break-word; }
+#soluzione { text-align:left; margin-top:10px; font-size:16px; color:#9f9; word-wrap:break-word; display:none; }
+textarea { width:100%; height:160px; background:#000; color:#0f0; padding:10px; border-radius:8px; }
+.center { text-align:center; }
+.btn-row { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin:12px 0; flex-direction:row; }
+button.nav { background:#007bff; color:#fff; }
+button.reset { background:#f1c40f; color:#111; }
+button.critico { background:#e74c3c; color:#fff; }
+button.done { background:#2ecc71; color:#111; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+<h2>Allenamento Patente Nautica</h2>
+
+
+<div class="card">
+  <section class="center">
+    <h3>Esercizio</h3>
+    <div id="numero">-</div>
+    <div id="testo"></div>
+    <div class="btn-row">
+      <button class="done" onclick="toggleSoluzione()">Mostra / Nascondi soluzione</button>
+      <button class="nav" onclick="apriNauticando()" style="background:#0066cc;">Nauticando</button>
+    </div>
+    <div id="soluzione"></div>
+
+    <div class="btn-row">
+      <button class="nav" onclick="nextRandom()">🎲 Random</button>
+      <button class="nav" onclick="prev()">⬅️ Indietro</button>
+      <button class="nav" onclick="nextSequential()">Avanti ➡️</button>
+ </div>
+<div class="btn-row">
+      <button class="done" onclick="done()">Segna svolto</button>
+      <button class="critico" onclick="toggleCritico()">Segna critico</button> 
+</div>
+<div class="btn-row">
+      <button class="reset" onclick="resetSingolo()">Reset esercizio</button>
+      <button class="reset" onclick="resetGenerale()">Reset carta</button>
+    </div>
+
+    <div id="stato" style="margin-top:10px"></div>
+    <div id="percent" style="margin-top:10px; font-weight:bold;"></div>
+  </section>
+</div>
+
+<div class="card">
+  <section>
+    <h3>Filtri</h3>
+    <div class="row">
+      <div class="col"><label><input type="checkbox" id="onlyCritici"> Solo critici</label></div>
+      <div class="col"><label><input type="checkbox" id="menoSvolti" checked> Priorità meno svolti</label></div>
+      <div class="col"><label><input type="checkbox" id="escludiCritici"> Escludi critici</label></div>
+    </div>
+    <label>Argomenti:</label>
+    <select id="argomenti" multiple size="4" style="width:100%"></select>
+  </section>
+</div>
+
+<div class="card">
+  <section class="center">
+    <h3>Vai a numero</h3>
+    <div class="btn-row">
+      <input type="number" id="gotoNum" min="1" style="width:120px; text-align:center; margin-bottom:0;">
+      <button class="nav" onclick="gotoNumber()">Vai</button>
+    </div>
+  </section>
+</div>
+<div class="card">
+  <section>
+    <h3>Gestione Carta</h3>
+    <div class="row">
+      <div class="col">
+        <label>Carta attiva:</label>
+        <select id="carta" onchange="switchCarta()"></select>
+      </div>
+    </div>
+  </section>
+</div>
+
+
+<div class="card">
+  <section>
+    <h3>Sincronizzazione</h3>
+    <div class="row">
+      <div class="col">
+        <label>GitHub Token (opzionale):</label>
+        <input type="password" id="githubTokenInput" placeholder="Inserisci token per sync" style="width:100%; margin-bottom:10px;">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button id="syncBtn" class="done" onclick="toggleSync()">🔄 Sincronizzazione OFF</button>
+    </div>
+    <p style="font-size:14px; margin-top:10px; color:#999;">
+      Inserisci un GitHub Personal Access Token per abilitare la sincronizzazione<br>
+      Le statistiche vengono salvate e sincronizzate tra tutti i dispositivi
+    </p>
+  </section>
+</div>
+
+<div class="card">
+  <section>
+    <h3>Genera lista</h3>
+    <label>Numero minimo svolto:</label>
+    <input type="number" id="minDone" value="0" min="0" style="width:120px"><br><br>
+    <div class="btn-row">
+      <button class="nav" onclick="generaLista()">Genera</button>
+      <button class="nav" onclick="copiaLista()">Copia</button>
+    </div>
+    <div id="countLista" style="margin-bottom:10px"></div>
+    <textarea id="lista"></textarea>
+  </section>
+</div>
+
+</div>
+
+<script>
+let esercizi = [], idx = 0;
+let gistId = 'a512d33779f311ec6f53e2d5cb4fec79'; // ID del Gist per la sincronizzazione
+let syncEnabled = true;
+let githubToken = ''; // Inserisci il tuo Personal Access Token di GitHub o lascia vuoto per disabilitare sync
+
+// Dati delle carte inseriti direttamente nel codice
+const datiCarte = {
+  '5D': [
+    {
+        "id": "1",
+        "testo": "L’imbarcazione “Daphne” si trova sul punto A di coordinate geografiche GPS: Lat. 42° 51’ N e Long. 010° 16’,9 E.\r\nDa questa posizione dirige sul punto B situato sul rilevamento vero Rilv = 127° del Monumento di Capo della Vita, distanza dal monumento 2,9 miglia nautiche.\r\nPosto che in zona è presente una corrente con direzione della corrente Dc = 180° e velocità della corrente Vc = 2 kn, indicare la velocità propria Vp da impostare per raggiungere il punto B in 30 minuti.",
+        "soluzione": "Vp = 9 ÷ 11 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "2",
+        "testo": "L’imbarcazione “Fru Fru” è in navigazione a largo dell’Isola d’Elba e, alle ore 08h30m, determina la propria posizione osservando il Faro di P.ta Polveraia (Lam.L.(3)15s52m16M) per rilevamento vero Rilv = 112° ad una distanza di 1,8 miglia nautiche (punto A).\r\nDal punto A l’unità procede con prora vera Pv = 350° e con una velocità\r\npropulsiva Vp = 8,5 kn.\r\nAlle ore 09h18m, al fine di verificare gli elementi del moto presenti in zona, l’unità determina la propria posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 42° 53’,0 N - Long. 010° 00’,0 E (punto B).\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 221° ÷ 227°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "3",
+        "testo": "L’imbarcazione “Europa” naviga da 1h15m a Nord dell’isola d’Elba e il solcometro a elica segna una velocità propulsiva Vp = 5 kn. Ci troviamo sull’allineamento Scoglietto – Faro di Portoferraio a una distanza di 3 miglia nautiche da Scoglietto e decidiamo di dirigere per il porticciolo turistico di Salivoli. Dato che il punto nave stimato si trova a 2,5 miglia nautiche a Sud Ovest del punto nave calcolato, imputiamo questo spostamento alla presenza di una corrente. Calcolare il tempo necessario per raggiungere il porticciolo di Salivoli.",
+        "soluzione": "Tempo di navigazione: 1h14m ÷ 1h20m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "4",
+        "testo": "Alle ore 08h30m l’imbarcazione “Italia” sta navigando con prora vera Pv = 260° e velocità propulsiva Vp = 6,5 kn e si trova sul punto A di coordinate geografiche GPS:\r\nLat. 42° 41’ N  - Long. 010° 28’,4 E.\r\nAlle ore 09h40m si trova sul punto B dal quale si osserva Punta Morcone per rilevamento vero Rilv = 035° e il Faro di Capo di Poro per rilevamento vero Rilv\r\n= 310°. Posto che in zona sono presenti elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 027° ÷ 033°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "5",
+        "testo": "Alle ore 08h00m l’imbarcazione “Nausicaa” si  trova sul punto A di coordinate\r\ngeografiche GPS:\r\nLat. 42° 50’ N  - Long. 010° 00’ E\r\nDa tale posizione, l’unità si dirige a Punta Falcone, dove si deve arrivare alle\r\nore 11h30m.\r\nAlle ore 09h30m, al fine di verificare la presenza di elementi perturbatori del\r\nmoto, l’imbarcazione stabilisce la sua posizione (punto B), attraverso l’osservazione dei seguenti rilevamenti:\r\nRilv = 130° del traliccio Monte Poppe (Ovest Portoferraio); Rilv = 203° del Faro di Punta Polveraia.\r\nDeterminare la direzione corrente Dc.",
+        "soluzione": "Dc = 288° ÷ 294°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "6",
+        "testo": "Alle ore 10h00m l’unità “Acrux” si trova nel punto A di coordinate geografiche\r\nGPS:\r\nLat. 42° 39’ N - Long. 010° 12’,7 E\r\nDal punto A si intende raggiungere Punta di Fetovaia con una velocità propria Vp = 4 kn.\r\nConsiderato che in zona è presente una corrente di direzione Dc = 270° e\r\nvelocità Vc = 2 nodi, determinare l’ora di arrivo.",
+        "soluzione": "Ora di arrivo: 11h05m ÷ 11h11m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "7",
+        "testo": "Partenza da Isola Cerboli (Est Isola d’Elba) alle ore 08 24m con velocità\r\npropulsiva Vp = 6 kn e rotta vera Rv = 180°.\r\nSuccessivamente si rileva Capo d’Ortano al traverso a una distanza di 4,9 miglia\r\nnautiche.\r\nDal punto nave A determinato si vuole proseguire per raggiungere il punto B di\r\ncoordinate geografiche GPS: Lat. 42°40’ N  Long. 010° 30’ E.\r\nDeterminare la quantità di carburante necessaria, inclusa la riserva, dalla partenza e fino a destinazione sapendo che il motore ha un consumo di 12 l/h.",
+        "soluzione": "Carburante = 29 ÷ 31 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "8",
+        "testo": "Siamo in navigazione a Nord dell’Isola d’Elba con prora bussola Pb = 69°\r\n(variazione magnetica V = +1°) e una velocità propria Vp = 6 kn.\r\nAlle ore 11h30m rileviamo il faro di Scoglietto per rilevamento polare ρ = +045° e sempre lo stesso alle ore 11h50m per rilevamento polare ρ = +090°.\r\nDa tale punto nave costiero A si vuole raggiungere Punta Falcone.\r\nSapendo che il consumo orario del nostro motore è di 10 l/h, determinare la quantità di carburante necessaria, inclusa la riserva, per il tratto di navigazione a partire dall’ultimo punto nave A delle 11h50m.",
+        "soluzione": "Carburante = 19 ÷ 21 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "9",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat. 42°44’,2 N e Long. 010° 21’,2 E con prora vera Pv = 247° e velocità propulsiva Vp = 6 kn.\r\nAlle ore 12h00m ci troviamo nel punto dove rileviamo con rilevamento polare ρ = +045°  il Faro di Capo di Poro e 15 minuti dopo rileviamo lo stesso faro al traverso ρ = +090° (punto B).\r\nDa tale punto nave B,  si dirige verso il punto C di coordinate geografiche GPS:\r\nLat. 42° 40’ N e Long. 010° 00’ E.\r\nDeterminare la quantità di carburante necessaria per tutta la navigazione, inclusa la riserva, considerando un consumo medio di 4 l/h.",
+        "soluzione": "Carburante = 13 ÷ 15 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "10",
+        "testo": "Partenza da Punta del Nasuto (Nord Ovest dell’Isola d’Elba) con una prora bussola Pb = 060° (variazione magnetica V = 4° W) e una velocità propria Vp = 6 kn.\r\nSi vuole determinare il punto nave A eseguendo con fanale Scoglietto due rilevamenti polari a dritta:\r\n1) ρ =+045° eseguito alle ore 10h00m\r\n2) ρ =+090° eseguito alle ore 10h28m.\r\nDeterminare la quantità di carburante, compresa la riserva, necessaria dalla partenza per arrivare al porticciolo turistico di Salivoli (simbolo) sapendo che il nostro motore ha un consumo pari a 10l/h.",
+        "soluzione": "Carburante = 33 ÷ 35 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "11",
+        "testo": "Partenza da Punta di Fetovaia (Sud Ovest isola d’Elba) con una prora vera Pv =\r\n105° e una velocità propulsiva Vp = 6 kn.\r\nSi vuole verificare l’assenza di fattori esterni perturbatori al fine di determinare il nostro punto nave,  eseguendo quindi due rilevamenti polari a sinistra con isola Corbelli:\r\nρ =– 045° eseguito alle ore 10h00m ρ = – 090° eseguito alle ore 10h16m\r\nDal punto nave A così calcolato si vuole raggiungere Punta dei Ripalti. Determinare la quantità di carburante, compresa la riserva, per giungere a Punta dei Ripalti, sapendo di avere un motore che consuma 12 l/h.",
+        "soluzione": "Carburante = 30 ÷ 32 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "12",
+        "testo": "In navigazione ad Ovest dell’Isola d’Elba con prora bussola Pb = 350°\r\n(declinazione d = 1°E, deviazione δ = 0°), con una velocità propulsiva Vp = 9 kn,\r\nrileviamo il faro di Punta Polveraia: alle ore 12h00m Rilb = 075°;\r\nalle ore 12h20m Rilb = 125°.\r\nDeterminare il punto nave delle ore 12h20m.",
+        "soluzione": "Lat. 42°49’,7 N ÷ 42°50’,3 N Long. 010°02’,0 E ÷ 010°02’,6 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "13",
+        "testo": "Stiamo navigando a Nord dell’Isola d’Elba con una prora bussola Pb = 086° (declinazione d =2°W, deviazione δ = – 2°) con velocità propulsiva Vp = 5 kn. Alle ore 17h00m rileviamo il faro di Scoglietto per rilevamento bussola Rilb = 164° e dopo 18 minuti di navigazione per il rilevamento bussola Rilb = 194°. Determinare le coordinate del punto nave delle ore 17h18m.",
+        "soluzione": "Lat. 42°52’,2 N ÷ 42°52’,8 N Long. 010°20’,3 E ÷ 010°20’,9 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "14",
+        "testo": "Stiamo navigando a Sud dell’isola d’Elba con prora bussola Pb = 104°\r\n(variazione magnetica V = 4°W) e velocità propulsiva Vp = 6 kn.\r\nSi osserva un faro sulla costa che emette un lampo di luce ogni 5 secondi e lo si rileva per i seguenti rilevamenti bussola:\r\nalle ore 01h50m  per Rilb = 046° alle ore 02h20m  per Rilb = 009° alle ore 03h05m  per Rilb = 321°\r\nDeterminare le coordinate del punto nave alle ore 03h05m.",
+        "soluzione": "Lat. 42°38’,7 N ÷ 42°39’,3 N Long. 010°19’,8 E ÷ 010°20’,4 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "15",
+        "testo": "Stiamo navigando a Ovest dell’Isola d’Elba con prora vera Pv = 355° (variazione magnetica Vm = – 5°) e velocità propulsiva Vp = 6 kn.\r\nAlle ore 10h00m si rileva Punta Nera (Ovest Isola d’Elba) per rilevamento bussola Rilb = 045°, alle ore 10h30m si rileva la stessa punta per rilevamento bussola Rilb = 100°.\r\nDeterminare le coordinate del punto nave alle ore . 10h30m.",
+        "soluzione": "Lat. 42°45’,9 N ÷ 42°46’,5 N Long. 010°02’,4 E ÷ 010°03’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "16",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS Lat. 42°40’ N e Long. 010°00’ E con rotta vera Rv = 350° (variazione magnetica V = 2°W) e una velocità propulsiva Vp = 12,4 kn.\r\nAlle ore 13h45m  si esegue il rilevamento bussola Rilb = 052° del faro di Punta\r\nPolveraia (Ovest Isola d’Elba);\r\nalle ore 14h00m si esegue il rilevamento bussola Rilb = 083° dello stesso faro. Determinare le coordinate del punto nave delle ore 14h00m.",
+        "soluzione": "Lat. 42°46’,6 N ÷ 42°47’,2 N Long. 009°59’,3 E ÷ 010°00’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "17",
+        "testo": "Alle ore 09h 15m l’imbarcazione “Vega” si trova nella posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 42° 45’,0 N - Long. 010° 01’,7 E (punto A) e sta navigando con una velocità effettiva Ve = 6 kn.\r\nAlla medesima ora riceve una richiesta di assistenza dall’imbarcazione “Serenity” per avaria.\r\nTale imbarcazione, che sta navigando con rotta vera Rv = 240° con velocità effettiva Ve = 4 kn, comunica la propria posizione, individuata dalle seguenti coordinate geografiche Lat. 42° 55’ N - Long. 010° 12’ E (punto B).\r\nL’imbarcazione “Vega” decide , quindi, di raggiungere l’unità in difficoltà per\r\nprestare assistenza senza variare la velocità.\r\nDeterminare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 42°52’,5 N ÷ 42°53’,1 N Long. 010°05’,7 E ÷ 010°06’,3 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "18",
+        "testo": "Partenza alle ore 10h00m da Capo Sant’Andrea con una rotta per raggiungere\r\nalle ore 12h30m Capo della Vita.\r\nNella zona è presente un vento di Maestrale che crea uno scarroccio di 10°.\r\nDeterminare l’Ora del traverso con fanale Scoglietto.",
+        "soluzione": "Ora traverso: 11h33m ÷ 11h39m",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "19",
+        "testo": "Dal punto nave A delle seguenti coordinate geografiche GPS: Lat. 42° 53’,4 N e Long. 010° 06’,6 E  delle ore 07h20m, si vuole seguire una rotta vera Rv = 090° in presenza di un vento di Grecale che provoca uno scarroccio Sc +10° e una velocità effettiva Ve = 6 kn.\r\nDeterminare l’ora in cui rileviamo Torre Isola Cerboli al nostro traverso.",
+        "soluzione": "Ora traverso: 10h27m ÷ 10h33m",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "20",
+        "testo": "Dal punto nave A delle seguenti coordinate geografiche GPS: Lat 42° 41',5 N Long 010° 11',3 E si procede con prora vera Pv = 085°, considerando che in zona insiste un vento di Tramontana che crea uno scarroccio di 8 °.\r\nDeterminare le coordinate del punto B nel quale si rileva Punta dei Ripalti\r\n(zona Sud Est Isola d’Elba) al traverso.",
+        "soluzione": "Lat. 42°39’,7 N ÷ 42°41’,3 N Long. 010°25’,2 E ÷ 010°25’,8 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "21",
+        "testo": "Siamo a Sud dell’Isola d’Elba e ci troviamo sul punto nave A delle seguenti coordinate geografiche GPS: Lat. 42° 39’,6 N  Long. 010° 17’,4 E. Navighiamo con prora vera Pv = 290° e siamo in presenza di un vento di Libeccio che provoca uno scarroccio di 5°.\r\nDeterminare le coordinate del punto  B posto al traverso di Punta le Tombe.",
+        "soluzione": "Lat. 42°42’,6 N ÷ 42°43’,2 N Long. 010°07’,5 E ÷ 010°08’,1 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "22",
+        "testo": "Partenza alle ore 10h00m da Isola Cerboli con una prora vera Pv = 190° e una velocità effettiva Ve = 6 kn.\r\nNella zona è presente un vento di Maestrale che crea uno scarroccio di 10°.\r\nDeterminare l’ora del traverso con Punta dei Ripalti.",
+        "soluzione": "Ora traverso: 11h37m ÷ 11h43m",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "23",
+        "testo": "L’imbarcazione “Ester” alle ore 09h00m parte da Scoglio dello Sparviero con prora bussola Pb =163° (variazione magnetica – 3°) e una velocità propria Vp = 6 kn.\r\nConsiderato che in zona è presente una corrente di direzione Dc = Nord Ovest e velocità Vc = 2 kn, determinare le coordinate del punto nave B alle ore 11h 00m.",
+        "soluzione": "Lat. 42°39’,1 N ÷ 42°39’,7 N Long. 010°44’,2 E ÷ 010°44’,8 E",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "24",
+        "testo": "L’unità “Kochab” alle ore 10:00 si trova sul punto A di coordinate geografiche\r\nGPS:\r\nLat. 42°40’ N – Long 010°40’ E\r\ndiretta verso il porto turistico di Castiglione della Pescaia (fanali) con una velocità propria Vp = 6 kn.\r\nConsiderato che in zona è presente una corrente di direzione Dc = 059° e\r\nvelocità Vc =2 kn, determinare l’ora di arrivo.",
+        "soluzione": "Ora arrivo: 11h19m ÷ 11h24m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "25",
+        "testo": "Il M/Y “Nubian” si trova sul punto A di coordinate geografiche GPS:\r\nLat. 42°44’,9 N - Long. 010°40’E\r\ndiretta verso la torretta Carbonifera di Follonica, si pianifica la navigazione per arrivare a destinazione in 2 ore.\r\nConsiderando che in zona è presente una corrente di direzione Dc = 220° e velocità Vc = 1,5 kn, indicare la prora bussola Pb da tenere. (declinazione 2°E, deviazione. 3°W)",
+        "soluzione": "Pb = 008° ÷ 014°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "26",
+        "testo": "L’imbarcazione “Cassiopea” alle ore 11h00 si trova nel punto A situato 4 miglia\r\nnautiche a Sud Ovest del serbatoio di Marina di Grosseto.\r\nConsiderato che in zona è presente una corrente di direzione Dc = Est e velocità Vc = 2 kn; abbiamo pianificato di seguire una rotta vera Rv = 302° e di impostare una velocità propulsiva Vp = 8 kn.\r\nCalcolare l’ora in cui rileveremo al traverso lo Scoglio dello Sparviero.",
+        "soluzione": "Ora del traverso: 12h50m ÷ 12h57m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "27",
+        "testo": "L’imbarcazione “Venus” si trova alle ore 10h00 nel punto A di coordinate\r\ngeografiche GPS:\r\nLat. 42°50’ N - Long 010°38’,5 E\r\nprocede con una prora vera Pv = 141° e una velocità propulsiva Vp = 6 kn.\r\nA seguito di un controllo della posizione, alle ore 11h30m si determina il punto nave B eseguendo simultaneamente due rilevamenti veri:\r\nfanali di Castiglione della Pescaia Rlv = 080° Punta Ala Rlv = 330°.\r\nDeterminare il valore della direzione della corrente Dc.",
+        "soluzione": "Dc = 359° ÷ 005°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "28",
+        "testo": "Partenza da Castiglione della Pescaia con una prora bussola Pb = 271° (variazione magnetica V = 1° W) e una velocità propulsiva Vp = 6 nodi.\r\nSi vuole calcolare il punto nave A eseguendo due rilevamenti polari a dritta con Scoglio dello Sparviero:\r\nρ = +045° eseguito alle ore 09h00m ρ =+090° eseguito alle ore 09h22m\r\nGiunti al traverso di Scoglio dello Sparviero decidiamo di dirigere verso il punto\r\nB di coordinate geografiche GPS Lat. 42°50’N e Long. 010°37’E.\r\nDeterminare la quantità di carburante necessario alla navigazione, compresa la riserva,  sapendo che il nostro motore consuma 10 l/h.",
+        "soluzione": "Carburante = 28 ÷ 30 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "29",
+        "testo": "Siamo in uscita dal porto di Castiglione della Pescaia e navighiamo con rotta vera Rv = 270° e una velocità propulsiva Vp = 4,4 kn.\r\nAlle ore 13h00m rileviamo con rilevamento polare a dritta ρ = +045° la Torre Scoglio dello Sparviero e alle ore 13h30m rileviamo lo stesso punto al traverso. Da tale punto nave, dirigiamo per il punto di coordinate geografiche GPS: Lat. 42°40’N e Long. 010°50’E.\r\nDeterminare la quantità di carburante necessaria, dalla partenza alla destinazione, considerando un consumo medio di 3,5 l/h e una riserva del 30%.",
+        "soluzione": "Carburante = 14,5 ÷ 16,5 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "30",
+        "testo": "Partenza dal fanale torretta Carbonifera (Golfo di Follonica) con una rotta vera Rv = 180° e una velocità propulsiva Vp = 6 kn.\r\nDurante la navigazione si vuole controllare il punto nave A eseguendo con faro di Punta Ala due rilevamenti polari a sinistra:\r\nρ = -045° eseguito alle ore 08h00m ρ =-090° eseguito alle ore 08h22m\r\nGiunti al traverso, si decide di raggiungere il punto B di coordinate geografiche\r\nGPS: Lat. 42°40’N e Long. 010°40’E.\r\nDeterminare il carburante necessario alla navigazione comprensivo della riserva sapendo che il motore ha un consumo orario di 15l/h.",
+        "soluzione": "Carburante = 54 ÷ 57 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "31",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat.42°40’N e  Long 010°55’E per raggiungere il punto B di coordinate geografiche GPS: Lat.42°50’ N  Long.010°37’E con una velocità propulsiva Vp = 6 kn.\r\nSi vuole verificare l’assenza di fattori esterni eseguendo due rilevamenti polari\r\na dritta di Scoglio dello Sparviero:\r\nρ = +045° eseguito alle ore 10h00m ρ = +090° eseguito alle ore 10h08m\r\nDeterminare la quantità di carburante necessaria, inclusa la riserva, per svolgere l’intera navigazione sapendo che il motore ha un consumo orario di 10 l/h.",
+        "soluzione": "Carburante = 35 ÷ 37 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "32",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat.42°38’,8 N\r\nLong.010°58’,5 E con una prora bussola Pb = 305° (variazione magnetica V = 3°\r\nW).\r\nSi determina il punto nave B eseguendo con Scoglio dello Sparviero due rilevamenti polari a dritta:\r\nρ = +045° eseguito alle ore 11h00m ρ = +090° eseguito alle ore 11h17m\r\nDeterminare la quantità di carburante necessaria, compresa la riserva, per giungere al traverso di Scoglio dello Sparviero tenendo conto di un consumo del motore pari a 5 l/h.",
+        "soluzione": "Carburante = 17 ÷ 19 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "33",
+        "testo": "Stiamo navigando a Sud di Castiglione della Pescaia con una prora bussola Pb = 281° (declinazione d = 3°E, deviazione δ= -4°) e velocità propulsiva Vp = 12 kn. Vogliamo verificare il punto nave costiero eseguendo alle ore 11h00m il rilevamento bussola Rilb = 046° dei fanali di Castiglione della Pescaia e dopo 30 minuti un rilevamento bussola Rilb = 351° dello Scoglio Sparviero.\r\nDeterminare le coordinate del punto nave delle ore 11h30m.",
+        "soluzione": "Lat. 42°45’,4 N ÷ 42°46’,0 N Long. 010°43’,0 E ÷ 010°43’,6 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "34",
+        "testo": "Stiamo navigando a Sud di Punta Ala con partenza dal punto A di coordinate geografiche GPS: Lat. 42°40’ N e Long. 010°50’ E con una prora vera Pv = 315° e velocità propulsiva Vp = 6 kn (declinazione d= 2°W, deviazione δ = -2°).\r\nSi rileva il faro di Punta Ala alle ore 10h00m per rilevamento bussola Rilb = 034° e dopo mezz’ora di navigazione sempre lo stesso faro per rilevamento bussola Rilb = 074°.\r\nDeterminare le coordinate del punto nave delle ore 10h30m.",
+        "soluzione": "Lat. 42°46’,4 N ÷ 42°47’,0 N Long. 010°37’,9 E ÷ 010°38’,5 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "35",
+        "testo": "Partenza da Castiglione della Pescaia con una prora bussola Pb = 271° (variazione magnetica V = 1° W) e velocità propulsiva Vp = 6 kn.\r\nAlle ore 15h00m si esegue un rilevamento bussola Rilb = 351° con Passo Peroni e alle ore 15h34m  con Scoglio Sparviero un rilevamento bussola Rilb = 021°. Determinare le coordinate del punto nave delle ore 15h34m.",
+        "soluzione": "Lat. 42°46’,5 N ÷ 42°47’,1 N Long. 010°41’,9 E ÷ 010°42’,5 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "36",
+        "testo": "Il giorno 5 Gennaio 2021 siamo in navigazione nel golfo di Follonica  con prora\r\nbussola Pb = 197° (deviazione δ = 1° E) e velocità propulsiva Vp = 9 kn.\r\nIl valore della declinazione magnetica anno 2016:\r\nd = 1° 30' E variazione annua 6’ E.\r\nAlle ore 09h00m si rileva Punta Martina per rilevamento bussola Rilb = 097°; alle ore 09h10m  si rileva il faro di Punta Ala per rilevamento bussola Rilb = 147°.\r\nDeterminare le coordinate del punto nave delle ore  09h10m.",
+        "soluzione": "Lat. 42°50’,2 N ÷ 42°50’,8 N Long. 010°41’,9 E ÷ 010°42’,5 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "37",
+        "testo": "Partenza da Scoglio dello Sparviero con una rotta vera Rv = 130° e una velocità propria Vp = 6 kn.\r\nSi vuole determinare il punto nave A eseguendo alle ore 10h00m con i fanali di Castiglione della Pescaia un rilevamento vero Rilv = 041° e alle ore 10h20m con Serbatoio Marina di Grosseto un rilevamento vero Rilv =  080°.\r\nDeterminare le coordinate del punto nave delle ore 10h20m.",
+        "soluzione": "Lat. 42°41’,8 N ÷ 42°42’,4 N Long. 010°51’,8 E ÷ 010°52’,4 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "38",
+        "testo": "Stiamo navigando nel golfo di Follonica con una rotta vera Rv = 025°. Consapevoli che in zona è presente un vento di Maestrale che crea uno scarroccio di 5°, alle ore 10h00m ci troviamo nel punto A da dove rileviamo Punta Francese con rilevamento polare ρ = 035° e contemporaneamente il faro di Punta Ala con rilevamento polare ρ = 077°.\r\nDeterminare il valore del punto nave costiero B delle ore 10h00m.",
+        "soluzione": "Lat. 42°48’,4 N ÷ 42°48’,8 N Long. 010°39’,2 E ÷ 010°39’,6 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "39",
+        "testo": "Partenza da Scoglio dello Sparviero con una rotta vera Rv = 140°. considerando che in zona insiste un vento di Libeccio che provoca uno scarroccio di 10°, determinare le coordinate geografiche del punto A che si trova al traverso del Serbatoio di Marina di Grosseto.",
+        "soluzione": "Lat. 42°39’,7 N ÷ 42°40’,1 N Long. 010°51’,6 E ÷ 010°52’,0 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "40",
+        "testo": "Partenza dal punto nave A delle seguenti coordinate geografiche GPS: Lat.42°40’ N e Long.010°50’ E con una rotta vera Rv = 320°. considerando che in zona è presente un vento di Grecale che crea uno\r\nscarroccio di 10°, determinare le coordinate del punto B al traverso dei fanali di Castiglione della Pescaia.",
+        "soluzione": "Lat. 42°42’,8 N ÷ 42°43’,2 N Long. 010°46’,3 E ÷ 010°46’,7 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "41",
+        "testo": "Alle ore 10h00m ci troviamo sul punto A che si trova sul rilevamento vero Rilv = 320° del fanale rosso del porto di Castiglione della Pescaia alla distanza di 1 miglio nautico. Stiamo navigando con prora vera Pv =  253° e velocità propulsiva Vp = 5 kn.\r\nIn zona è presente un vento di Libeccio che provoca uno scarroccio di 7° e una variazione di velocità di - 1 nodo.\r\nDeterminare la posizione del punto nave B alle ore 12h00m tenendo conto\r\ndell’effetto del vento.",
+        "soluzione": "Lat. 42°43’,2 N ÷ 42°43’,6 N Long. 010°42’,6 E ÷ 010°43’,0 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "42",
+        "testo": "Siamo in navigazione nella zona di Castiglione della Pescaia e alle ore 12h10m ci troviamo nel punto A di coordinate geografiche GPS Lat. 42° 41’,7 N e Long. 010° 51’,5 E.\r\nDa tale posizione si decide di raggiungere il punto B posto 1 miglio nautico a Sud della Torre di Scoglio dello Sparviero, navigando con velocità propulsiva Vp\r\n= 7 nodi. Sapendo che in zona insiste un vento di Ponente che provoca uno scarroccio di 5° e una variazione di velocità di - 1 nodo, determinare il valore della prora vera da mantenere.",
+        "soluzione": "Pv = 302° ÷ 304°",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "43",
+        "testo": "Il M/Y “Nubian”, in navigazione a sud dell’isola di Pianosa, alle ore 12h42m si trova sul punto A dal quale osserva il Fumaiolo di Punta Brigantina per rilevamento vero Rilv = 022° e la Torre di Cala della Ruta per rilevamento vero Rilv = 323°.\r\nDa questa posizione il M/Y procede per rotta vera Rv = 202° e velocità propulsiva Vp = 16 kn. Alle ore 13h12m l’apparato GPS fornisce le seguenti coordinate geografiche del punto B: Lat. 42° 24’,1 N - Long. 010° 00’,0 E.  Posto che in zona sono presenti elementi perturbatori del moto, determinare la velocità della corrente Vc.",
+        "soluzione": "Vc = 2,9 ÷ 3,5 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "44",
+        "testo": "Nel 2008, l’imbarcazione “Cassiopea”, naviga con rotta vera Rv = 307°. Alle ore 16h10m, osserva il Faro dello Scoglio Africa (Lam.5s19m12M) per rilevamento vero Rilv = SW ad una distanza di 3 miglia nautiche (punto A).\r\nDal punto A decide di accostare a dritta per dirigere in direzione del Fumaiolo di Punta Brigantina (Isola Pianosa), impostando una velocità propria Vp = 6 kn. A seguito di un controllo della posizione, alle ore 17h00m si determina il punto nave B situato sul rilevamento vero Rilv = 339° del Fumaiolo di P.ta Brigantina ad una distanza di 4,5 miglia.\r\nPosto, quindi, che dal punto A sono cambiati gli elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 039° ÷ 045°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "45",
+        "testo": "L’imbarcazione “Sa Manna” alle ore 23h40m si trova in navigazione sul punto A (rilevamento vero Rilv = 310° del Faro Scoglio Africa (Lam.5s19m12M) -  distanza 3,3 miglia nautiche) e procede con           prora vera Pv = 356° e con velocità propulsiva Vp = 7 kn.\r\nAlle ore 01h22m, al fine di verificare gli elementi del moto, l’imbarcazione\r\ndetermina al GPS la sua posizione geografica (punto B): Lat. 42° 32’,9 N - Long. 010° 06’,0 E\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 353° ÷ 359°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "46",
+        "testo": "Nel 2008 l’imbarcazione “Merak” è in navigazione nei pressi dell’Isola di\r\nMontecristo.\r\nAlle ore 00h20m l’unità determina la propria posizione osservando il Faro di Scoglio Africa (Lam.5s19m12M) per rilevamento vero Rilv = 238° ad una distanza di 3 miglia nautiche (punto A).\r\nDal punto A, l’imbarcazione procede con prora vera Pv = 035° e con una\r\nvelocità propulsiva Vp = 3,5 kn.\r\nAlle ore 02h30m, al fine di verificare gli elementi del moto presenti in zona, l’unità determina la posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 42à31’,5 N – Long. 010°15’,3 E (punto B)\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la velocità della corrente Vc.",
+        "soluzione": "Vc = 1 ÷ 1,6 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "47",
+        "testo": "L’imbarcazione “Sanvito” si trova sul punto A di coordinate geografiche GPS: Lat. 42° 30’ N - Long. 010° 18’,5 E.\r\nSi naviga per raggiungere in 30 minuti il punto B di coordinate Lat. 42° 34’,2 N e Long. 010° 25’ E.\r\nConsiderando che in zona è presente una corrente con direzione corrente Dc Nord e velocità Vc 4 kn, calcolare la velocità propulsiva Vp necessaria per detta navigazione.",
+        "soluzione": "Vp = 10,3 ÷ 10,9 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "48",
+        "testo": "L’imbarcazione “Nuraghe” si trova sul punto A di coordinate geografiche GPS: Lat. 42°33’,4 N - Long. 010° 12’,8 E.\r\nSi naviga con rotta vera Rv = 253° e velocità effettiva Ve = 5 kn. Considerando che in zona insiste una corrente con direzione corrente Dc = 190° e velocità Vc = 1 kn, calcolare la velocità propulsiva Vp.",
+        "soluzione": "Vp = 4,3 ÷ 4,9 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "49",
+        "testo": "Il M/Y “Tempest” si trova alle ore 10h00m sul punto A di coordinate\r\ngeografiche GPS:\r\nLat. 42°25’ N - Long. 010° 14’,6 E.\r\nSiamo in navigazione con prora vera Pv = 055° e  veolocità propulsiva Vp = 6 kn.\r\nConsiderando che in zona è presente una corrente direzione corrente Dc = Nord e velocità Vc = 1.5 kn, determinare la rotta vera Rv.",
+        "soluzione": "Rv = 043° ÷ 049°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "50",
+        "testo": "L’unità “Mars” alle ore 09h00m si trova sul punto A di coordinate geografiche\r\nGPS:\r\nLat.42°30’ N e Long.010°20’E.\r\nSi naviga con prova vera Pv = 263° e una velocità propulsiva Vp = 6 kn.\r\nAlle ore 10h40m si determina il punto nave B eseguendo simultaneamente due rilevamenti veri:\r\nfaro di Pianosa Rlv = 345° faro Scoglio Africa Rlv =210°.\r\nDeterminare il valore della velocità corrente Vc.",
+        "soluzione": "Vc = 0,9 ÷ 1,5 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "51",
+        "testo": "L’imbarcazione “Sa Manna” parte da Scoglio Africa e naviga con prora vera Pv\r\n= 014° e velocità propulsiva Vp = 11 kn.\r\nConsiderando che in zona è presente una corrente direzione corrente Dc = 140° e velocità Vc = 2 kn, determinare il valore della velocità effettiva Ve.",
+        "soluzione": "Ve = 9,5 ÷ 10,1 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "52",
+        "testo": "L’imbarcazione “Sanvito”, alle ore 13h00m, si trova sul punto nave A da cui osserva il Faro dell’Isola di Pianosa (Lam.(2)10s42m18M) per rilevamento vero Rilv = 246° distanza 3,2 miglia nautiche, da tale posizione si dirige con velocità propulsiva Vp = 4,8 kn verso il punto B avente coordinate geografiche GPS: Lat. 42° 23’,3 N - Long. 010° 05’,9 E.\r\nConsiderato che in zona è presente una corrente di direzione Dc = 280° e velocità Vc = 1,5 kn, determinare il valore della prora vera Pv.",
+        "soluzione": "Pv = 144° ÷ 150°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "53",
+        "testo": "Alle ore 05h30m, l’imbarcazione “Nausicaa” si trova sul punto A situato a 0,9 miglia a E del Faro dello Scoglio Africa (Lam.5s19m12M). Da tale posizione l’unità si dirige, impostando una velocità propulsiva Vp = 5,5 kn verso il punto nave B, da cui si osserva il “punto trigonometrico” di Monte della Fortezza (Isola di Montecristo) per rilevamento vero Rilv = 180° e distanza di 2,8 miglia nautiche. Posto che in zona non sono presenti elementi perturbatori del moto e che il propulsore dell’unità “Nausicaa” ha un consumo orario di 38 l/h, determinare la quantità di carburante necessaria per la traversata, comprensiva di riserva.",
+        "soluzione": "Carburante = 90 ÷ 92 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "54",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat.42°30’ N  Long.010°30’\r\nE con una prora vera Pv = 253° e una velocità propulsiva Vp = 6 kn.\r\nDurante la navigazione si effettuano due rilevamenti polari a sinistra di Scoglio Africa:\r\nρ = -045° eseguito alle ore 10h00m ρ = -090° eseguito alle ore 10h27m\r\nDa tale punto nave B si decide di raggiungere il punto C di coordinate\r\ngeografiche GPS: Lat. 42°30’N e Long. 010°00’E.\r\nDeterminare il carburante necessario alla navigazione, comprensivo della riserva, sapendo che il motore consuma 10 l/h.",
+        "soluzione": "Carburante = 58 ÷ 60 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "55",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat.42°30’ N e Long.010°30’ E con una prora vera Pv = 275°.\r\nAl fine di determinare la velocità di navigazione effettiva, si rileva Punta Brigantina con due rilevamenti polari a dritta:\r\nρ = +045° eseguito alle ore 10h00m ρ = +090° eseguito alle ore 10h25m\r\nDa tale punto nave B delle 10:25, si decide di raggiungere Scoglio Africa (faro). Determinare il carburante necessario, inclusa la riserva, per giungere a destinazione sapendo che il motore consuma 10 l/h.",
+        "soluzione": "Carburante = 60 ÷ 62 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "56",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat.42°20’ N e Long.010°09’,2 E con una prora vera Pv  = 360°.\r\nAl fine di determinare la velocità di navigazione effettiva, si determina il punto nave B eseguendo con faro Isola Pianosa due rilevamenti polari a sinistra:\r\nρ = -045° eseguito alle ore 22h00m ρ = -090° eseguito alle ore 22h15m\r\nDa tale punto B, si vuole raggiungere il punto C di coordinate geografiche GPS:\r\nLat. 42°30’N e Long. 010°20’E.\r\nDeterminare il carburante necessario, compresa la riserva, per l’intera\r\ntraversata sapendo che il motore ha un consumo di 6 l/h.",
+        "soluzione": "Carburante = 18 ÷ 20 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "57",
+        "testo": "Partenza dal punto A di coordinate geografiche GPS: Lat.42°30’ N e Long.010°00’ E con una prora vera Pv = 062°.\r\nAl fine di determinare la velocità di navigazione effettiva, si determina il punto nave B eseguendo con faro di isola Pianosa due rilevamenti polari a sinistra:\r\nρ = -045° eseguito alle ore 09h00m ρ = -090° eseguito alle ore 09h25m\r\nDa tale punto nave B delle ore 9:25 si decide di proseguire la navigazione diretti verso il punto C di coordinate geografiche GPS: Lat. 42°30’N e Long. 010°20’E.\r\nDeterminare il carburante necessario per l’intera traversata, compresa la\r\nriserva, sapendo che il motore ha un consumo di 6 l/h.",
+        "soluzione": "Carburante = 19,5 ÷ 21,5 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "58",
+        "testo": "Partenza dal punto A situato a 2,5 miglia nautiche a Sud Ovest di Punta del Libeccio (Ovest isola Pianosa) diretti verso il punto B di coordinate geografiche GPS: Lat.42°20’ N e Long.010°30’ E.\r\nAl fine di determinare la velocità di navigazione effettiva, si determina il punto nave eseguendo con Punta del Diavolo (Nord isola Montecristo) due rilevamenti polari a dritta:\r\nρ = +045° eseguito alle ore 09h00m ρ =+090° eseguito alle ore 09h38m\r\nDeterminare il carburante necessario per l’intera traversata, compresa la\r\nriserva, sapendo che il motore ha un consumo di 10 l/h.",
+        "soluzione": "Carburante = 54 ÷ 56 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "59",
+        "testo": "Nel 2007, alle ore 09h30m, l’imbarcazione “Venus” parte dal punto A di coordinate geografiche GPS: Lat. 42° 34’,4 N - Long. 009° 58’,5 E e procede con velocità propulsiva Vp = 6 kn verso il punto B determinato dai seguenti luoghi di posizione:\r\ndistanza di 3,5 miglia sul rilevamento vero Rilv = 270° del Faro dello Scoglio Africa (Lam.5s19m12M).\r\nConsiderando che in zona non sono presenti elementi perturbatori del moto e che il propulsore dell’unità ha un consumo orario di 15 l/h, determinare, compresa la riserva, il carburante necessario.",
+        "soluzione": "Carburante = 48 ÷ 50 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "60",
+        "testo": "Stiamo navigando a Sud dell’Isola di Pianosa con prora bussola Pb = 265° (declinazione d = 3°W, deviazione δ = 0°) e velocità propria Vp = 5 kn.\r\nVogliamo determinare il punto nave costiero A eseguendo alle ore 10h00m un rilevamento bussola di Punta Brigantina Rilb = 315° e dopo 36 minuti di navigazione di Torre Cala della Ruta un rilevamento bussola Rilb = 350°.\r\nDeterminare le coordinate del punto nave delle ore 10h36m.",
+        "soluzione": "Lat. 42°31’,4 N ÷ 42°32’,0 N Long. 010°03’,8 E ÷ 010°04’,4 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "61",
+        "testo": "Nel dicembre 2008, alle ore 10h18m, l’imbarcazione “Mizar” si trova sul punto A di coordinate geografiche GPS: Lat. 42° 34’,5 N Long. 010° 08’,5 E.\r\nNon essendo presenti in zona elementi perturbatori del moto, si intende procedere per passare a 2,6 miglia nautiche al traverso a dritta del Faro dello Scoglio Africa (Lam.5s19m12M) ad una velocità propulsiva Vp = 6 kn (punto C). Il valore di declinazione nel 1994 è: 0° 20’ E  (variazione annua 7’ E).\r\nDeterminare il valore della prora bussola Pb.  PER LA RISOLUZIONE DEL QUESITO E' NECESSARIO UTILIZZARE LA TABELLA DELLE DEVIAZIONI ALLEGATA",
+        "soluzione": "Pb = 176° ÷ 182°",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "62",
+        "testo": "Nel novembre 2009, alle ore 16h00m, l’unità “Mars” si trova sul punto A di coordinate geografiche GPS: Lat. 42° 33’,0 N e Long. 009° 56’,0 E.\r\nNon essendo presenti in zona elementi perturbatori del moto, si intende passare a 3,1 miglia nautiche al traverso a dritta del Faro Scoglio Africa (Lam.5s19m12M) ad una velocità propulsiva Vp = 9 kn.\r\nIl valore di declinazione nel 1994 è: 0° 20’ E (variazione annua 7’ E). Determinare il valore della prora bussola Pb. PER LA RISOLUZIONE DEL QUESITO E' NECESSARIO UTILIZZARE LA TABELLA DELLE DEVIAZIONI ALLEGATA",
+        "soluzione": "Pb = 133° ÷ 139°",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "63",
+        "testo": "Partenza dal punto A situato a 6 miglia nautiche da Scoglio Africa sul rilevamento vero Rilv = 171°. Da tale posizione dirigiamo sul punto  B di coordinate geografiche GPS: Lat. 42° 37’,6 N e Long. 010° 10’ E con velocità propulsiva Vp = 12 kn.\r\nAlle ore 10h00m  rileviamo il faro dell’Isola di Pianosa con un rilevamento polare a sinistra ρ = -045°, dopo 15 minuti di navigazione rileviamo lo stesso faro per un rilevamento polare a sinistra  ρ = -125°.\r\nDeterminare il punto nave delle ore 10h15m .",
+        "soluzione": "Lat. 42°35’,1 N ÷ 42°35’,7 N Long. 010°08’,4 E ÷ 010°09’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "64",
+        "testo": "Stiamo navigando a Sud dell’isola di Pianosa con rotta vera Rv = 090° e velocità\r\npropulsiva Vp = 6 kn.\r\nSi vuole determinare il punto nave A eseguendo alle ore 12h00m con Torre Cala della Ruta un rilevamento vero Rilv = 030° e alle ore 12h50m  un rilevamento vero Rilv = 330° con faro di Isola Pianosa.\r\nDeterminare le coordinate del punto nave delle ore 12h50m.",
+        "soluzione": "Lat. 42°31’,7 N ÷ 42°32’,3 N Long. 010°07’,9 E ÷ 010°08’,5 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "65",
+        "testo": "Stiamo navigando a Sud Sud Est dell’Isola di Pianosa con prora bussola Pb = 065° (declinazione d= 1° E, deviazione δ = +4°) e una velocità propulsiva Vp = 6 kn.\r\nAlle ore 10h00m  rileviamo con grafometro semicircolare la Torre di Cala della Ruta con rilevamento polare sin. ρ = -118° e alle ore 10h14m  l’Isola La Scola con rilevamento polare sin. ρ = - 098°.\r\nDeterminare le coordinate del punto nave delle ore 10h14m .",
+        "soluzione": "Lat. 42°33’,0 N ÷ 42°33’,6 N Long. 010°07’,3 E ÷ 010°07’,9 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "66",
+        "testo": "Il giorno 8 Gennaio 2021 siamo in navigazione ad Est dell'Isola Pianosa con prora bussola Pb = 042° (deviazione δ = 1° E) e velocitè propulsiva Vp = 12 kn. Il valore della declinazione magnetica anno 2018:\r\nd = 2 °45' W variazione annua 5’ W.\r\nAlle ore 11h45m  si rileva Punta Brigantina per rilevamento bussola Rilb = 277°; alle ore 11h50m  si rileva Punta del Grottone per rilevamento bussola Rilb = 307°.\r\nDeterminare le coordinate del Punto nave delle ore 11h50m.",
+        "soluzione": "Lat. 42°34’,4 N ÷ 42°35’,0 N Long. 010°09’,4 E ÷ 010°10’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "67",
+        "testo": "Alle ore 09h00m in navigazione con una rotta vera Rv = 150°, si rileva il faro dell’Isola di Pianosa con rilevamento polare ρ = +138°, distanza 3,6 miglia nautiche.\r\nSapendo che in zona spira un vento di Ponente che crea uno scarroccio di 8°, indicare le coordinate del punto nave B dove fermarsi a causa del divieto di pesca imposto dalla zona 2 dell’Isola di Montecristo.",
+        "soluzione": "Lat. 42°23’,6 N ÷ 42°24’,0 N Long. 010°17’,8 E ÷ 010°18’,2 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "68",
+        "testo": "Stiamo navigando a Sud Sud Est dell’Isola di Pianosa con rotta vera Rv = 072°.\r\nAlle ore 10h00m rileviamo a sinistra, la Torre di Cala della Ruta con\r\nrilevamento polare ρ = -119° e contemporaneamente l’Isola La Scola con rilevamento polare ρ = - 077°.\r\nDeterminare le coordinate del punto nave B delle ore 10h00m considerando che in zona è presente un vento di tramontana che crea uno scarroccio di 2°.",
+        "soluzione": "Lat. 42°31’,9 N ÷ 42°32’,3 N Long. 010°06’,7 E ÷ 010°07’,1 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "69",
+        "testo": "Ci troviamo sul punto A in cui rileviamo il faro dello Scoglio d’Africa con rilevamento vero Rlv = 090° distanza 2,8 miglia nautiche; dal punto A dirigiamo con rotta vera Rv = 025° sul punto B in cui rileviamo a sinistra il faro dell’Isola  di Pianosa con rilevamento polare ρ = -137°.\r\nSapendo che in zona è presente un vento di Levante che provoca uno scarroccio di 8°, determinare le coordinate del punto nave B.",
+        "soluzione": "Lat. 42°35’,5 N ÷ 42°35’,9 N Long. 010°09’,0 E ÷ 010°09’,4 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "70",
+        "testo": "Ci troviamo nel punto A situato a 1,5 miglia nautiche a Nord-Ovest del Faro di Scoglio Africa e vogliamo seguire una rotta vera Rv = 352° dirigendo verso l’Isola d’Elba. In zona è presente un vento di Maestrale che provoca uno scarroccio di 8°.\r\nDeterminare le coordinate geografiche del punto B al traverso del faro di isola Pianosa.",
+        "soluzione": "Lat. 42°33’,7 N ÷ 42°34’,1 N Long. 010°00’,0 E ÷ 010°00’,4 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "71",
+        "testo": "Alle ore 8h30m dal punto nave A situato a 2 miglia nautiche a Sud Ovest del Faro Scoglio Africa, considerando che in zona insiste un vento di Scirocco che provoca uno scarroccio di - 6° e una velocità effettiva Ve = 18 kn,  si intende procedere con rotta vera Rv = 020°.\r\nDeterminare l’ora in cui ci troviamo nel punto B, dove rileviamo Punta\r\nBrigantina (zona Sud isola Pianosa) al traverso.",
+        "soluzione": "Ora del rilevamento: 09h13m ÷ 09h19m",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "72",
+        "testo": "Alle ore 09h30m l’imbarcazione “Nuraghe”, navigando a S del Promontorio dell’Argentario, determina la propria posizione sul punto A, osservando simultaneamente la Torre di Punta Avoltore (Promontorio Argentario) per rilevamento vero Rilv = 030° e la Torre di Punta di Torre Ciana (Promontorio Argentario) per rilevamento vero Rilv = 321°.\r\nDeve raggiungere il punto B situato a 3 miglia nautiche a N dal Faro di Punta del Fenaio (Lam.(3)15s39m16M) (Isola del Giglio). L’ora stimata di arrivo (ETA) è fissata per le ore 11h00m.\r\nConsiderato che in zona agisce una corrente di direzione Dc = 158° e velocità Vc = 2 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 277° ÷ 303°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "73",
+        "testo": "L’imbarcazione “Jupiter”, alle ore 09h45m, si trova sul punto A di coordinate geografiche GPS: Lat. 42° 23’,2 N - Long. 010° 56’,8 E.\r\nDa tale punto A procede con velocità propulsiva Vp = 7 kn verso il punto B situato sul rilevamento  vero Rilv = 305° del Faro Talamone (Lam.(2)10s30m15M) ad una distanza di 0,5 miglia nautiche.\r\nConsiderato che in zona è presente una corrente di direzione Dc = 075° e\r\nvelocità Vc = 3 kn, determinare l’ora di arrivo sul punto B.",
+        "soluzione": "Ora di arrivo: 11h06m ÷ 11h12m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "74",
+        "testo": "L’imbarcazione “Aldebaran” è in navigazione nei pressi del Promontorio\r\ndell’Argentario e, alle ore 11h30m, determina la propria posizione osservando il Faro di P.ta Lividonia (Lam.5s47m16M) per Rilv = S ad una distanza di 2,2 miglia nautiche (punto A).\r\nDal punto A, l’imbarcazione procede con prora vera Pv = 292° e con una\r\nvelocità propulsiva Vp = 6 kn.\r\nAlle ore 13h00m, al fine di verificare gli elementi del moto presenti in zona, l’unità determina la posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 42° 32’,4 N - Long. 010° 57’,0 E (punto B).\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la velocità corrente Vc.",
+        "soluzione": "Vc = 0,7 ÷ 1,3 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "75",
+        "testo": "Nell’anno 2000, l’imbarcazione “Rigel” alle ore 19h40m si trova sul punto A individuato dall’intersezione del rilevamento vero Rilv = 119° del Faro di P.ta del Fenaio (Lam.(3)15s39m16M) (Isola del Giglio) e la batimetrica dei 200 metri.\r\nDal punto A, l’imbarcazione procede con prora bussola Pb = 069° (deviazione letta nella tabella di borso δ = - 4°) e con velocità propulsiva Vp = 6 kn verso il punto B, situato a 0,5 miglia nautiche a S del Faro di Talamone (Lam.(2)10s30m15M).\r\nIl valore di declinazione nel 1994 è: 0° 30’ E (variazione annua 7’ E)\r\nAlle ore 21h00m, al fine di verificare gli elementi del moto presenti in zona, l’unità determina la posizione (punto C) osservando simultaneamente il Faro di P.ta del Fenaio (Lam.(3)15s39m16M) per rilevamento bussola Rilb = 195° e il Faro di Punta Lividonia (Lam.5s47m16M) per rilevamento bussola Rilb = 107°. Determinare la rotta vera Rv.",
+        "soluzione": "Rv = 055° ÷ 061°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "76",
+        "testo": "L’imbarcazione “Regina” è in navigazione nei pressi del Promontorio dell’Argentario.\r\nAlle ore 12h18m l’imbarcazione determina la propria posizione osservando simultaneamente il faro di Talamone (Lam.(2)10s30m15M) per rilevamento vero Rilv = 047° ed il Faro di P.ta Lividonia (Lam.5s47m16M) per rilevamento vero Rilv = 152° (punto A).\r\nDal punto A l’imbarcazione procede con prora vera Pv = 243° e con una\r\nvelocità propulsiva Vp = 5 kn.\r\nAlle ore 13h30m, al fine di verificare gli elementi del moto presenti in zona, l’unità determina la posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 42° 26’,2 N - Long. 010° 58’,8 E (punto B).\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 124° ÷ 130°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "77",
+        "testo": "Alle ore 13h00m l’imbarcazione “Acrux” si trova sul punto di coordinate geografiche GPS: Lat. 42° 32’,4 N - Long. 010° 57’,0 E (punto A).\r\nDa tale posizione l’imbarcazione intende dirigere, con una velocità propulsiva Vp = 6 kn, sul punto B che si trova rilevando il Faro della Formica Grande (Lam.6s23m11M) per Rilv = E ad una di 4,6 miglia nautiche.\r\nConsiderando che in zona è presente una corrente di direzione Dc = 048° e\r\nvelocità Vc = 2,2 kn, determinare l’ora di arrivo al punto B.",
+        "soluzione": "Ora di arrivo: 14h44m ÷ 14h50m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "78",
+        "testo": "L’imbarcazione “Vega” è in navigazione a Nord dell’Isola del Giglio.\r\nAlle ore 12h00m l’unità determina la propria posizione osservando il  Faro di Formica Grande (Lam.6s23m11M) per rilevamento vero Rilv = 124° ad una distanza di 2,4  miglia nautiche (punto A).\r\nDa tale posizione l’imbarcazione intende dirigere, con una velocità propulsiva Vp = 10 kn, sul punto  B che si trova rilevando il Faro di Punta del Fenaio (Lam.(3)15s39m16M) per rilevamento vero Rilv = 153° ad una distanza di 1 miglio nautico.\r\nConsiderando che in zona è presente una corrente di direzione Dc = 048° e\r\nvelocità Vc = 2,2 kn, determinare l’ora di arrivo al punto B.",
+        "soluzione": "Ora di arrivo: 13h20m ÷ 13h26m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "79",
+        "testo": "Nel 2009, alle ore 16h45m, l’imbarcazione “Schedir” naviga con una prora vera Pv = 068° alla velocità propulsiva Vp = 8 kn e determina la propria posizione osservando il Faro di Formica Grande (Lam.6s23m11M) per rilevamento vero Rilv = 333° ad una distanza di 2,1 miglia nautiche (punto A).\r\nDa tale posizione l’imbarcazione intende dirigere verso il punto B di coordinate geografiche: Lat. 42° 35’,4 N – Long. 011°03’,4 E.\r\nAlle ore 17h39m, l’imbarcazione osserva il Faro di P.ta Lividonia (Lam.5s47m16M) per rilevamento  vero Rilv = 159° ad una distanza minima dalla costa di 6 miglia nautiche.\r\nConsiderando che in zona è presente una corrente di direzione Dc = 180° e velocità Vc = 3,2 kn, determinare la rotta vera Rv.",
+        "soluzione": "Rv = 089° ÷ 095°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "80",
+        "testo": "L’imbarcazione “Essex” sta navigando da due ore diretta al porto di Talamone. Alle ore 12h00 determiniamo il punto nave con il GPS e ci accorgiamo di essere fuori rotta:\r\nPunto nave A GPS Lat. 42° 25’,5 N - Long. 010° 51’,1 E;\r\nPunto nave B stimato Lat. 42° 26’,6 N - Long. 010° 47’,3 E.\r\nImputando lo spostamento alla corrente, calcolare la velocità propulsiva Vp necessaria per arrivare alle ore 15h00 al porto turistico di Talamone (simbolo).",
+        "soluzione": "Vp = 3,9 ÷ 4,5 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "81",
+        "testo": "Sono le ore 10h00 e l’unità “Vega” si trova sul punto A in cui osserva simultaneamente il faro di Talamone per rilevamento vero Rlv = 053° e il faro di Punta Lividonia per rilevamento vero Rlv = 150°.\r\nDal punto A, l’imbarcazione procede con prora vera Pv = 230° e con velocità\r\npropulsiva Vp = 10 nodi.\r\nDopo 45 minuti di navigazione, al fine di verificare gli elementi del moto\r\npresenti nella zona, l’unità determina la posizione (punto B) osservando sulla sua sinistra il faro di Punta del Fenaio con rilevamento polare ρ = 030° a una distanza di 3,5 miglia nautiche.\r\nIl punto B non coincide con il punto stimato a quell’ora, imputiamo lo\r\nspostamento alla corrente. Determinare la velocità corrente Vc.",
+        "soluzione": "Vc = 1,3 ÷ 1,9 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "82",
+        "testo": "L’unità “Rigel” alle ore 10h00 si trova sul punto A di coordinate geografiche\r\nGPS:\r\nLat. 42° 30’,6 N e Long. 011° 06’,4 E.\r\nSi sta navigando seguendo una rotta vera Rv = 300° e una velocità propulsiva Vp = 7,2 kn; sappiamo che nella zona insite una corrente con direzione corrente Dc = 180° e velocità corrente Vc = 2 kn.\r\nDeterminare la prora vera Pv.",
+        "soluzione": "Pv = 310° ÷ 316°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "83",
+        "testo": "L’imbarcazione “Regina” alle ore 08h30m si trova sul punto A di coordinate\r\ngeografiche GPS:\r\nLat. 42° 24’,.3 N - Long. 010° 55’,1 E\r\nStiamo navigando con velocità propulsiva Vp =7 kn verso il punto B di coordinate Lat. 42° 21’,6 N - Long. 010° 59’,4 E. e nella zona è presente una corrente con direzione corrente Dc Nord e velocità Vc = 1,5 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 136° ÷ 142°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "84",
+        "testo": "Alle ore 11h00m l’unità “Fru Fru”si trova nel punto nave A determinato con l’allineamento tra la la Torre di Cala di Forno e il faro di Formica Grande e il rilevamento vero di Torre Poggio Raso Rilv = 098°.\r\nDal punto A si vuole raggiungere il punto B di coordinate geografiche Lat.\r\n42°37’,8 N e Long. 010°50’ E alle ore 12h30m.\r\nConsiderando che in zona è presente una corrente con direzione corrente Dc = 145° e velocità Vc = 1.5 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 287° ÷ 292°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "85",
+        "testo": "Alle ore 10h00m l’imbarcazione “Italia” si trova nel punto A, e osserva il Fanale rosso del Porto di Piombino (Lam.r.5s8M) per rilevamento vero Rilv = 243°, ad una distanza dallo stesso di 0,4 miglia nautiche. Da questo punto\r\nl’imbarcazione dirige verso la Torre dello Scoglio dello Sparviero, in modo da giungere sul punto B di coordinate geografiche: Lat. 42° 49’,0 N e Long. 010° 41’,4 E, alle ore 10h40m.\r\nConsiderato che in zona è presente una corrente di direzione Dc = 192° e velocità Vc = 3 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 127° ÷ 133°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "86",
+        "testo": "Alle ore 03h20m l’imbarcazione “Pollux” parte dal punto A, situato sul rilevamento vero Rilv = N della Torre dello Scoglio dello Sparviero (P.ta Ala) ad una distanza di 3 miglia nautiche, e procede seguendo una prora vera Pv = 161° con una velocità propulsiva Vp = 10 kn.Alle ore 04h26m, al fine di\r\nverificare gli elementi del moto presenti in zona, l’unità determina la posizione osservando il Faro di Formica Grande (Lam.6s23m11M) per Rilv = 124° ad una distanza minima dalla costa di 2,4 miglia nautiche.\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 046° ÷ 052°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "87",
+        "testo": "Alle ore 18h00m l’unità “Kochab” sta navigando con prora vera Pv = 076° e velocità propulsiva Vp = 7,1 kn e si trova sul punto A di coordinate geografiche GPS:Lat. 42° 21’,0 N - Long. 009° 57’,0 E.\r\nAlle ore 18h45m il GPS fornisce le seguenti coordinate geografiche (punto B):\r\nLat. 42°24’,0 N – Long. 010°05’,1 E.\r\nPosto che in zona sono presenti elementi perturbatori del moto, determinare la velocità della corrente Vc.",
+        "soluzione": "Vc = 2,2 ÷ 2,8 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "88",
+        "testo": "L’imbarcazione “Deneb” si trova in navigazione ad Ovest dell’Isola del Giglio. Alle ore 18h00m l’imbarcazione determina la propria posizione individuata dalle seguenti coordinate geografiche GPS:Lat. 42° 22’,3 N - Long. 010° 41’,2 E (punto A).\r\nDa tale posizione l’unità assume prora vera Pv = 063° ed una velocità\r\npropulsiva Vp = 5 kn.\r\nConsiderando che in zona è presente una corrente di direzione Dc = S e\r\nvelocità Vc = 1,5 kn, l’imbarcazione “Deneb” naviga fino ad osservare il Faro di P.ta del Fenaio (Lam.(3)15s39m16M) per rilevamento vero Rilv = 150° (punto B), determinare l’ora di arrivo sul punto B.",
+        "soluzione": "Ora di arrivo: 19h47m ÷ 19h53m",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "89",
+        "testo": "L’imbarcazione “Bellatrix” è in navigazione a Nord dell’Isola di Montecristo e, alle ore 22h00m, determina la propria posizione osservando il “punto trigonometrico” di Monte della Fortezza per rilevamento vero Rilv = 160°, distanza di 3,9 miglia nautiche (punto A).Da tale posizione l’unità assume prora vera Pv = 038° ed una velocità propulsiva Vp = 5 kn.\r\nConsiderando che in zona è presente una corrente di direzione Dc = 095° e velocità Vc = 2 kn, determinare la velocità effettiva Ve.",
+        "soluzione": "Ve = 6 ÷ 6,6 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "90",
+        "testo": "Nel 2006, alle ore 16h45m, l’unità “Acrux” si trova sul punto A, distanza 1 miglio sul rilevamento vero  Rilv = Nord della Torre di Capo d’Uomo (Talamone).\r\nDal punto A si fa rotta verso Giglio Porto (ingresso tra i due Fanali), impostando una velocità  propulsiva Vp = 20 kn.\r\nPosto che il propulsore dell’unità ha un consumo orario di 65 l/h e che in zona non sono presenti elementi perturbatori del moto, determinare il carburante necessario, comprensivo del 30% di riserva, dal punto nave A sino al punto nave al traverso del faro di Punta Lividonia.",
+        "soluzione": "Carburante = 19,5 ÷ 21,5 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "91",
+        "testo": "Siamo in uscita dal fanale di Porto Santo Stefano (simbolo porto turistico) e navighiamo con rotta vera Rv = 320° dirigendo verso le Formiche di Grosseto. Alle ore 14h00m rileviamo il Faro di Formica Grande con rilevamento polare a sinistra  ρ = - 45°. Mantenendo la stessa rotta, alle ore 14h30m rileviamo lo stesso faro al traverso. Da questo punto si inverte la rotta e si rientra a Porto Santo Stefano (simbolo porto turistico).\r\nDeterminare la quantità di carburante necessaria per tutta la navigazione effettuata, inclusa la riserva,  considerando un consumo medio di 4 l/h.",
+        "soluzione": "Carburante = 21,5 ÷ 23,5 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "92",
+        "testo": "Partenza da Punta Lividonia con rotta vera Rv = 267°.\r\nAl fine di determinare la velocità di navigazione effettiva, si determina il punto nave A eseguendo con faro Punta del Fenaio due rilevamenti polari:\r\nρ = +045° - 045° eseguito alle ore 10h00m ρ = +090° - 090° eseguito alle ore 10h30m\r\nDa tale punto A si vuole raggiungere il porticciolo turistico di Talamone (simbolo).\r\nDeterminare il valore del carburante necessario per tutta la navigazione effettuata comprensivo della riserva sapendo che il motore ha un consumo orario di 10 l/h.",
+        "soluzione": "Carburante = 49 ÷ 51 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "93",
+        "testo": "Si parte da Giglio Porto (fanali) con una prora vera Pv = 042°.\r\nAl fine di determinare la velocità di navigazione effettiva, si determina il nostro punto nave A eseguendo con faro Punta Lividonia alle ore 10.00 un primo\r\nrilevamento polare a dritta ρ = +045° e dopo 30 minuti di navigazione sempre con lo stesso punto cospicuo un secondo rilevamento polare a dritta ρ = +090°. Da tale punto A si decide di cambiare rotta per arrivare a Formica Piccola.\r\nDeterminare la quantità di carburante necessaria a tutta la navigazione, comprensiva della riserva, sapendo che il motore ha un consumo pari a 12 l/h.",
+        "soluzione": "Carburante = 56 ÷ 58 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "94",
+        "testo": "Si parte dal punto A di coordinate geografiche GPS: Lat. 42° 25’,7 N e Long. 011° 03’,7 E con una prora bussola Pb = 267°  (variazione magnetica V = 0°) e una velocità propulsiva Vp = 4,2 kn.\r\nSi eseguono con faro Punta del Fenaio (Nord isola del Giglio ) due rilevamenti polari a sinistra:\r\nρ =  -045° eseguito alle ore 16h30m ρ =  -090° eseguito alle ore 17h00m\r\nDa tale punto nave B si decide di raggiungere Formica Grande. Determinare la quantità di carburante necessaria per tutta la navigazione, compresa la riserva, sapendo che il motore ha un consumo orario di 10 l/h.",
+        "soluzione": "Carburante = 52,5 ÷ 54,5 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "95",
+        "testo": "Si parte dal punto A di coordinate geografiche GPS: Lat. 42°20’ N e Long. 010° 40’ E con una prora bussola Pb = 061° e una velocità propulsiva Vp = 3,6 kn.   Si determina il punto nave B eseguendo con faro Punta del Fenaio (Nord isola del Giglio) due rilevamenti polari a dritta:\r\nρ = +045° eseguito alle ore 16h30m ρ = +090° eseguito alle ore 17h00m\r\nDa tale punto B si decide di raggiungere Formica Grande.\r\nDeterminare la quantità di carburante necessaria per tutta la navigazione, comprensiva della riserva, sapendo che il motore ha un consumo pari a 10 l/h. Variazione magnetica 0°",
+        "soluzione": "Carburante = 70,5 ÷ 72,5 litri",
+        "argomenti": [
+            "carburante"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "96",
+        "testo": "Partenza da Punta del Fenaio diretti a Talamone (faro) con una velocità\r\npropulsiva Vp = 6 kn (declinazione d = 1°W, deviazione δ  +5°).\r\nAlle ore 10.00 rileviamo il faro di Punta Lividonia per un primo Rlb 096°, dopo 20 minuti di navigazione lo rileviamo con un secondo Rlb 131°.\r\nDeterminare le coordinate del punto nave costiero delle ore 10:20.",
+        "soluzione": "Lat. 42°28’,4 N ÷ 42°29’,0 N Long. 011°03’,4 E ÷ 011°04’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "97",
+        "testo": "Stiamo navigando ad Est delle Formiche di Grosseto con una prora vera  Pv = 349° (variazione magnetica V = 2°E) con velocità propulsiva Vp = 6 kn.\r\nAlle ore 10h00m rileviamo il faro di Formica Grande con rilevamento bussola Rilb = 278° e alle 10h20m  rileviamo lo stesso faro con rilevamento bussola Rilb\r\n= 243°.\r\nDeterminare le coordinate del punto nave delle ore 10h20m.",
+        "soluzione": "Lat. 42°35’,7 N ÷ 42°36’,3 N Long. 010°56’,8 E ÷ 010°57’,4 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "98",
+        "testo": "Il giorno 5 Gennaio 2021 siamo in navigazione al largo del Promontorio Argentario con prora bussola Pb = 337° (deviazione 1° E) e Vp = 12 nodi. Il valore della declinazione magnetica anno 2018:\r\nd = 1 °45' W variazione annua 5’ W.\r\nAlle ore 10h00m  si rileva Capo d'Uomo (Argentario) per rilevamento bussola Rilb = 036°\r\nalle ore 10h20m si rileva lo Scoglio Argentarola per rilevamento bussola Rilb = 081°.\r\nDeterminare le coordinate del punto nave delle ore 10h20m.",
+        "soluzione": "Lat. 42°24’,3 N ÷ 42°24’,9 N Long. 011°00’,7 E ÷ 011°01’,3 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "99",
+        "testo": "Partenza da faro Talamone con una rotta vera Pv = 235° e una velocità propulsia Vp = 6 kn.\r\nSi vuole determinare il punto nave costiero A eseguendo alle ore 20h00m un rilevamento di Punta Lividonia rilevamento vero Rilv = 120° e alle ore 20h50m un rilevamento vero Rlv = 200° di Punta del Fenaio.\r\nDeterminare le coordinate del punto nave delle ore 20h50m.",
+        "soluzione": "Lat. 42°26’,1 N ÷ 42°26’,7 N Long. 010°54’,2 E ÷ 010°54’,8 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "100",
+        "testo": "Siamo in navigazione a Ovest di Formica Grande con una prora bussola Pb = 230° (variazione magnetica V = 5° W) e una velocità propulsiva Vp 6 = kn.\r\nSi vuole determinare il punto nave costiero A eseguendo alle ore 16h00m con il faro di Formica Grande un rilevamento bussola Rilb = 105° e alle ore 16h23m sempre con lo stesso faro un rilevamento bussola Rilb =  070°.\r\nDeterminare le coordinate del punto nave delle ore 16h23m.",
+        "soluzione": "Lat. 42°32’,9 N ÷ 42°33’,5 N Long. 010°48’,5 E ÷ 010°49’,1 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "101",
+        "testo": "Alle ore 14h50m  imbarcazione “Rigel”, avente un pescaggio di m. 2, in navigazione a W dell’Isola del Giglio, determina la propria posizione\r\nosservando il Faro di Punta del Fenaio (Lam.(3)15s39m16M) per rilevamento vero Rilv = 095° ad una distanza di 2,5 miglia nautiche (punto A).\r\nDa tale punto procede seguendo una rotta vera Rv = 340° con una velocità effettiva Ve = 9 kn.\r\nAlle ore 15h50m riceve una richiesta di assistenza dall’imbarcazione “Dubhe”\r\nper avaria.\r\nTale imbarcazione comunica la propria posizione individuata dalle seguenti coordinate geografiche GPS:\r\nLat. 42° 32’,5 N - Long. 010° 57’,5 E (punto B).\r\nL’imbarcazione “Dubhe” sta navigando seguendo una rotta vera Rv = 052° ad\r\nuna velocità effettiva Ve = 1,6 kn.\r\nL’imbarcazione “Rigel” decide , quindi, di raggiungere l’unità in difficoltà per\r\nprestare assistenza senza variare la velocità.\r\nDeterminare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 42°33’,5 N ÷ 42°34’,1 N Long. 010°59’,4 E ÷ 011°00’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "102",
+        "testo": "Nel 2009 l’imbarcazione “Daphne” è in navigazione a E dell’Isola del Giglio,\r\nseguendo una rotta vera Rv = 041° con una velocità effettiva Ve = 4 kn.\r\nAlle ore 09h30m si trova sul punto A di coordinate geografiche GPS:Lat. 42°\r\n23’,0 N e Long. 010° 58’,0 E.\r\nAlla stessa ora l’imbarcazione “Sophia” chiede assistenza per avaria del\r\npropulsore.\r\nTale unità naviga seguendo una rotta vera Rv = 221° con una velocità effettiva Ve = 1,5 kn e la sua posizione GPS (punto B) risulta essere: Lat. 42° 31’,5 N e Long. 011° 08’,0 E.\r\nConsiderando che in zona non sono presenti elementi perturbatori del moto determinare le coordinate geografiche del punto C di intercettazione.",
+        "soluzione": "Lat. 42°28’,8 N ÷ 42°29’,4 N Long. 011°04’,9 E ÷ 011°05’,5 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "103",
+        "testo": "L’imbarcazione “Mistral” in uscita dal porto dell’Isola del Giglio, si trova alle ore 12h20m tra i fanali delle ostruzioni (punto A) e procede con una velocità propulsiva Vp1 = 5 kn verso il Faro di Talamone (Lam.(2)10s30m15M).\r\nAlle ore 14h20m riceve una richiesta di assistenza dall’imbarcazione “Ghibli”\r\nper avaria.\r\nTale imbarcazione, che sta navigando seguendo una rotta vera Rv = 105° ad una velocità effettiva Ve = 2,5 kn, comunica la propria posizione individuata dalle seguenti coordinate geografiche GPS:Lat. 42° 36’,0 N - Long. 010° 53’,0 E (punto B).\r\nAlle ore 14h20m , quindi, l’imbarcazione “Mistral” osserva il Faro di P.ta Lividonia (Lam.5s47m16M) per rilevamento vero Rilv = 146° ad una distanza dalla costa di 3,1miglia nautiche (punto A’).\r\nL’imbarcazione “Mistral” decide, quindi, di raggiungere l’unità in difficoltà per prestare assistenza all’imbarcazione “Ghibli” aumentando la velocità propria a 7 kn (Vp2).\r\nDeterminare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 42°35’,0 N ÷ 42°35’,6 N Long. 010°56’,4 E ÷ 010°57’,0 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "104",
+        "testo": "Stiamo navigando con rotta vera Rv = 313° e alle ore 09h00m ci troviamo sul punto A, sul rilevamento polare sinistro ρ = -090°e una distanza di 1,8 miglia nautiche dal faro di Punta del Fenaio (Isola del Giglio).\r\nConsiderando che in zona soffia un vento di Tramontana che crea uno scarroccio di 8°, indicare le coordinate geografiche del punto nave A.",
+        "soluzione": "Lat. 42°24’,1 N ÷ 42°24’,7 N Long. 010°54’,5 E ÷ 010°55’,1 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "105",
+        "testo": "Stiamo navigando a sud delle Formiche di Grosseto con rotta vera Rv = 045°. Alle ore 09h00m rileviamo al traverso sinistro ad una distanza di 2 miglia il faro di Formica Grande.\r\nConsiderando che nella zona soffia un vento di Tramontana che crea uno scarroccio di 5°, indicare le coordinate del punto nave.",
+        "soluzione": "Lat. 42°33’,0 N ÷ 42°33’,6 N Long. 010°54’,7 E ÷ 010°55’,3 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "106",
+        "testo": "Ci troviamo alle ore 15h30m sul punto A di coordinate geografiche GPS Lat 42°21’,1 N e Long. 011° 13’,5 E e vogliamo raggiungere il porto dell’isola del Giglio (fanali di ingresso in porto).\r\nIn zona insiste un vento di Libeccio che provoca uno scarroccio a dritta di 7° e\r\nuna variazione di velocità di – 1 kn.\r\nDeterminare la velocità propria Vp da impostare per raggiungere il porto turistico alle ore 17h45m.",
+        "soluzione": "Vp = 6,5 ÷ 7,5 kn",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "107",
+        "testo": "Dal punto nave A situato 1,5 miglia nautiche sul rilevamento Ovest Sud Ovest del faro di Punta del Fenaio (zona nord isola del Giglio), in presenza di un vento di Maestrale che provoca uno scarroccio di +8°  si intende impostare rotta vera Rv = 060°.\r\nDeterminare le coordinate del punto B nel quale si rileva Punta Lividonia (zona\r\nNord promontorio Argentario) per rilevamento polare a dritta ρ = +45°.",
+        "soluzione": "Lat. 42°26’,9 N ÷ 42°27’,5 N Long. 010°59’,9 E ÷ 011°00’,5 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "108",
+        "testo": "Dal punto nave A situato a una distanza di 1,5 miglia nautiche sul rilevamento vero Nord Ovest del Faro Formica Grande,  si intende procedere con rotta vera Rv = 095°, tenendo conto che siamo in presenza di un vento di Grecale che crea uno scarroccio di 5°.\r\nDeterminare le coordinate del punto nave B in cui si rileva al traverso il Faro di Talamone.",
+        "soluzione": "Lat. 42°32’,3 N ÷ 42°32’,9 N Long. 011°07’,8 E ÷ 011°08’,4 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    }
+],
+  '42D': [
+    {
+        "id": "1",
+        "testo": "Alle ore 20h20m, l’imbarcazione “Alphard” determina la propria posizione attraverso l’osservazione simultanea dei rilevamenti veri del Faro Cap de Feno (Lam.(4)15s20m21M) per Rilv = 335° e del Faro Cap. Pertusato (Lam.(2)10s100m25M) per Rilv = 032° (punto A).\r\nL’unità naviga seguendo una rotta vera Rv = 290° e una velocità propulsiva Vp =\r\n7 kn.\r\nTenuto conto che in zona vi è una corrente dalle seguenti caratteristiche Dc = 250° e Vc = 2,5 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 300° ÷ 306°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "2",
+        "testo": "Alle ore 06h45m l’imbarcazione “Sonia” si trova sul punto A individuato dall’intersezione del rilevamento vero Rilv = 067° del faro Ex sem. di Capo Testa e la batimetrica dei 50 metri.\r\nDal punto A, l’imbarcazione procede con prora vera Pv = 044° e con velocità\r\npropulsiva Vp = 7 kn.\r\nAlle ore 07h20m sul G.P.S. leggiamo le coordinate del punto nave B: Lat. 41°15’,7 N e Long. 009° 04’,7 E, imputiamo lo spostamento alla corrente. Poiché le condizioni meteo sono in peggioramento e non essendo mutati gli elementi perturbatori del moto, dal punto B si prosegue la navigazione dirigendo verso il porto turistico (simbolo) di Punta la Madonnetta, dove si vuole arrivare alle 08h20m.\r\nDeterminare la prora vera Pv.",
+        "soluzione": "Pv = 31° ÷ 37°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "3",
+        "testo": "Il M/Y “Formalhaut” è in navigazione a SW della Corsica e segue una prora vera\r\nPv = 175° ad una velocità propulsiva Vp = 6,6 kn.\r\nAlle ore 08h20m, determina la propria posizione osservando il Faro di Cap de Feno (Lam.(4)15s20m21M) per rilevamento vero Rilv = 090° ad una distanza di 2 miglia nautiche dallo stesso (punto A).\r\nAlle ore 09h50m, al fine di verificare gli elementi perturbatori del moto presenti in zona, determina nuovamente la sua posizione attraverso l’osservazione simultanea dei seguenti rilevamenti veri (punto B):\r\nRilv = 052° Faro di Cap Pertusato (Lam.(2)10s100m25M); Rilv = 098° Faro di Capo Testa (Lam.(3)12s67m17M).\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 298° ÷ 304°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "4",
+        "testo": "In navigazione ad ovest di Cap de Feno con Pb 286° e velocità propulsiva Vp = 6 kn (declinazione 3°E, deviazione 1°E), alle ore 02h30m rileviamo il fanale del segnale IALA cardinale sud per Rilb = 346°.\r\nDopo 20 minuti lo rileviamo nuovamente per Rilb = 56°.\r\nDeterminare le coordinate geografiche del punto nave delle ore 02h50m.",
+        "soluzione": "Lat. 41°25’,6 N ÷ 41°26’,2 N Long. 008°51’,3 E ÷ 008°51’,9 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "5",
+        "testo": "L’imbarcazione “Mizar”, è in navigazione a W di Cap de Feno (SW della Corsica), seguendo una rotta vera Rv = 080° con una velocità propulsiva Vp = 6 kn e, alle ore 10h40m, determina la propria posizione individuata dalle seguenti coordinate geografiche GPS:Lat. 41° 22’,2 N - Long. 008° 57’,5 E (punto A).\r\nSempre alla medesima ora 10h40m la stessa unità riceve una richiesta di assistenza dall’imbarcazione “Esperia” per avaria. Tale imbarcazione comunica la propria posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 41° 17’,3 N - Long. 009° 06’,0 E (punto B).\r\nL’imbarcazione “Esperia” sta navigando seguendo una rotta vera Rv = 060° ad\r\nuna velocità effettiva Ve = 3,3 kn.\r\nL’imbarcazione “Mizar” decide, quindi, di raggiungere l’unità in difficoltà per\r\nprestare assistenza aumentando la velocità a 8 kn.\r\nDeterminare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 41°19’,1 N ÷ 41°19’,7 N Long. 009°10’,6 E ÷ 009°11’,2 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "6",
+        "testo": "Dal punto nave A di coordinate geografiche GPS Lat. 41° 15’,3 N e Long. 009° 11’,5 E, si procede per raggiungere il porto di Bonifacio (Simbolo) navigando con velocità propulsiva Vp = 7 kn.\r\nSapendo che in zona insiste un vento di Ponente che provoca uno scarroccio di 10°, determinare la Prua vera per giungere a destinazione.",
+        "soluzione": "Pv = 333° ÷ 337°",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "7",
+        "testo": "Il M/Y “Atria” è in navigazione a NE della Sardegna e, alle ore 15h00m,\r\ndetermina la propria posizione (punto A) attraverso l’osservazione simultanea\r\ndei seguenti rilevamenti veri:\r\nRilv = 247° il Radiofaro Circolare di Capo Ferro (Lam.(3)15s52m24M); Rilv = 300° il Faro di Isole Monaci (Lam.5s26m10M).\r\nDa questo punto si procede con una velocità propulsiva Vp = 12 kn verso il punto B di coordinate geografiche GPS: Lat. 41° 21’,5 N - Long. 009° 26’,0 E. Tenuto conto che in zona vi è una corrente dalle seguenti caratteristiche Dc = 045° e Vc = 2,5 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 310° ÷ 316°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "8",
+        "testo": "Il M/Y “Savona” alle ore 21h00m si trova sul punto A di coordinate geografiche GPS: Lat. 41°20’,0 N – Long.009°30’,0 E e procede con prora vera Pv = 137° con velocità propulsiva Vp = 10 kn a Levante delle “Bocche di Bonifacio”.\r\nAlle ore 22h00m , al fine di verificare gli elementi perturbatori del moto presenti in zona, determina la propria posizione  rilevando il faro “I Monaci” con rilevamento vero Rilv = 280° e distanza di 4 miglia nautiche.\r\nPosto che in zona esiste una corrente, determinare la direzione corrente Dc.",
+        "soluzione": "Dc = 255° ÷ 261°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "9",
+        "testo": "Nel 2009 l’imbarcazione “Peacock” naviga a SE della Corsica con prora vera Pv = 180° e velocità propulsiva Vp = 4 kn, in assenza di elementi perturbatori del moto.\r\nAlle ore 11h50m determina la propria posizione (punto A) attraverso\r\nl’osservazione simultanea dei seguenti rilevamenti bussola:\r\nRilb = 243° il segnale cardinale E dell’Ecueil de Perduto (sc(3)10s16m11M);\r\nRilb = 195° il faro di Razzoli (Lam.5s77m13M); Rilb = 286° la Torre di Santa Manza.\r\nIl valore di declinazione è: 0° 05’ E 1993 (7’ E)\r\nDeterminare l’ora in cui si rileva al traverso di dritta il Faro dell’Isola di Lavezzi (Int.(2)6s27m15M) punto B.  PER LA RISOLUZIONE DEL QUESITO E' NECESSARIO UTILIZZARE LA TABELLA DELLE DEVIAZIONI ALLEGATA",
+        "soluzione": "Ora traverso: 12h31m ÷ 12h37m",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "10",
+        "testo": "Ci troviamo in navigazione ad est dell’Arcipelago della Maddalena con prora\r\nbussola Pb = 300° (declinazione 2°E, deviazione 2°W) e velocità propulsiva Vp\r\n=6 kn; rileviamo il Faro sulle Isolette Monaci per Rilb = 235°. Successivamente, dopo 15 minuti di navigazione, rileviamo nuovamente lo stesso per Rilb = 210°.  Determinare il punto nave al momento dell’ultimo rilevamento.",
+        "soluzione": "Lat. 41°15’,5 N ÷ 41°16’,1 N Long. 009°32’,8 E ÷ 009°33’,4 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "11",
+        "testo": "L’imbarcazione “Altair” è in navigazione a SE dell’Isola di Caprera, seguendo una rotta vera Rv = N con una velocità propulsiva Vp = 8 kn e alle ore 20h20m determina la propria posizione (punto A) attraverso l’osservazione simultanea dei seguenti rilevamenti veri:  Rilv = 135° del Faro di Capo Ferro (Lam.(3)15s52m24M);\r\nRilv = 246° della Meda galleggiante Secca di Tre Monti (Lam.(2)8s5M).\r\nAlle ore 21h05m, l’unità “Altair” riceve una richiesta di assistenza dall’imbarcazione “Deneb” che, a causa di un’avaria al propulsore, procede con rotta vera Rv = 225° e velocità effettiva Ve = 2 kn.\r\nL’unità “Deneb” comunica la propria posizione delle ore 21h05m individuata dalle seguenti coordinate geografiche GPS: Lat. 41° 22’,5 N - Long. 009° 23’,5 E (punto B). L’imbarcazione “Altair” decide, quindi, di raggiungere l’unità in difficoltà per prestare assistenza aumentando la velocità propulsiva a 9,9 kn.\r\nConsiderando che in zona non sono presenti elementi perturbatori del moto, determinare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 41°21’,1 N ÷ 41°21’,7 N Long. 009°21’,7 E ÷ 009°22’,3 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "12",
+        "testo": "Alle ore 10h 50m ci troviamo sul punto A che si trova sul rilevamento vero Rilv\r\n= 190° del Faro Isolette Monaci alla distanza di 1 miglio nautico. Stiamo navigando con prora vera Pv = 050° e velocità propulsiva Vp = 7 kn.\r\nIn zona è presente un vento di Ostro che provoca uno scarroccio di 8° e una variazione di velocità di + 1 nodo.\r\nDeterminare la posizione del punto nave B alle ore 12h30m tenendo conto\r\ndell’effetto del vento.",
+        "soluzione": "Lat. 41°23’,5 N ÷ 41°24’,1 N Long. 009°42’,6 E ÷ 009°43’,2 E",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "13",
+        "testo": "Nel 2008 l’imbarcazione “Khamsin” è in navigazione ad NW della Sardegna e alle ore 12h00m determina la propria posizione osservando la parte di costa più sporgente di P.ta Li Canneddi (Lat. 41° 01’,7 N - Long. 008° 52’,8 E) per rilevamento vero Rilv = 115° ad una distanza di 1 miglio nautico (punto A). Dal punto A, non essendo presenti in zona elementi perturbatori del moto,\r\nl’imbarcazione procede con prora vera Pv = 045° e con una velocità propulsiva\r\nVp = 6,5 kn.\r\nAlle ore 13h00m, al fine di verificare gli elementi perturbatori del moto presenti in zona, l’unità determina la propria posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 41° 07’,4 N - Long. 008° 55’,1 E (punto B).\r\nPosto che sono, pertanto, variati gli elementi perturbatori del moto, determinare la velocità della corrente Vc.",
+        "soluzione": "Vc = 1,7 ÷ 2,3 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "14",
+        "testo": "L’imbarcazione “Utopia” è in navigazione con prora vera Pv = 035° e velocità\r\npropulsiva Vp = 6 kn.\r\nAlle ore 20h00m determina la propria posizione individuata dalle seguenti\r\ncoordinate geografiche GPS: Lat. 40°54’,9 N e Long 008°42’,1 E. Sappiamo che la zona di mare è interessata da una corrente di direzione corrente Dc = 059° e velocità corrente Vc = 2 kn.\r\nDeterminare la velocità effettiva Ve.",
+        "soluzione": "Ve = 7,6 ÷ 8,2 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "15",
+        "testo": "Alle ore 12h00m salpiamo dalla rada a nord di C.po di M. Russo e assumiamo prora bussola Pb = 281° e velocità propulsiva Vp = 18 kn (declinazione 3°W, deviazione 2°E), rilevando il P.to Trigonometrico su M. Russo per Rilb = 241°. Alle ore 12h10m  rileviamo il Camp.le su P.ta di li Francesi per Rilb = 211°.\r\nDeterminare il punto nave delle ore 12h10m.",
+        "soluzione": "Lat. 41°09’,8 N ÷ 41°10’,4 N Long. 009°04’,3 E ÷ 009°04’,9 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "16",
+        "testo": "L’imbarcazione “Enif” è in navigazione ad W della Sardegna e, alle ore 10h 00m,\r\ndetermina la propria posizione individuata dalle seguenti coordinate\r\ngeografiche GPS: Lat. 41° 08’,5 N - Long. 009° 01’,5 E (punto A).\r\nAlla stessa ora, l’unità “Enif”, riceve una richiesta di assistenza dall’imbarcazione “Denebola” che, a causa di un’avaria al propulsore, procede con rotta vera Rv = 280° e velocità propulsiva Vp = 2 kn.\r\nL’unità “Denebola” comunica la propria posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 41° 12’,0 N - Long. 009° 02’,5 E (punto B).\r\nL’imbarcazione “Enif” decide, quindi, di raggiungere l’unità  “Denebola” per\r\nprestarle  assistenza impostando la velocità propulsiva Vp = 3 kn. Considerando che in zona non sono presenti elementi perturbatori del moto, determinare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 41°12’,3 N ÷ 41°12’,9 N Long. 008°58’,2 E ÷ 008°58’,8 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "17",
+        "testo": "Alle ore 11h15m dal punto nave A di coordinate geografiche GPS: Lat. 40° 56’,7 N e Long. 008° 42’,5 E si procede con rotta vera Rv = 045° e velocità effettiva Ve\r\n= 5,5 kn.\r\nConsiderando che nella zona soffia un vento di Maestrale che crea uno scarroccio di 6°, determinare l’orario in cui si rileva alla nostra dritta P.ta li Canneddi, per rilevamento polare ρ = 90°.",
+        "soluzione": "Ora traverso: 12h47m ÷ 12h54m",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "18",
+        "testo": "L’imbarcazione “Markab” si trova in navigazione a SE di Capo Figari (Lat. 40° 59’,7 N - Long. 009° 39’,9 E) e, alle ore 14h20m, determina la propria posizione attraverso l’osservazione simultanea dei rilevamenti veri dell’ex Semaforo di Capo Figari per Rilv = 288° e del Faro di P.ta Timone (Lam.L.(2)10s72m15M) (I. Tavolara) per Rilv = 216° (punto A).\r\nDa tale posizione dirige per giungere alle ore 16h00m sul punto B, situato alla distanza di 2 miglia nautiche sul rilevamento vero Rilv = 235° del Fanale delle Isole Nibani (Lam.4s21m2M), segnalamento luminoso marittimo posto a SE di Capo Ferro.\r\nTenuto conto che in zona vi è una corrente dalle seguenti caratteristiche Dc = 246° e Vc = 2,4 kn, determinare la velocità propulsiva Vp.",
+        "soluzione": "Vp = 7,7 ÷ 8,3 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "19",
+        "testo": "Nel 2008 siete in navigazione a bordo dell’imbarcazione “Canopo” ad E\r\ndell’Isola Tavolara, alla velocità propulsiva Vp di 7 kn e con prora bussola Pb =\r\n348°.\r\nAlle ore 05h30m determinate la vostra posizione attraverso l’osservazione simultanea dei rilevamenti bussola del Faro di P.ta Timone (Lam.L.(2)10s72m15M) per Rilb = 242° e del Faro dell’Isola di Figarolo (Lam.5s71m11M) per Rilb = 283° (punto A).\r\nIn zona vi è una corrente dalle seguenti caratteristiche Dc = 100° e Vc =1,5 kn. Il valore di declinazione riportato sulla carta nautica è: 0° 10’ E 1993 (7’ E) Considerando che gli elementi perturbatori del moto restano invariati, determinare la rotta vera Rv.  PER LA RISOLUZIONE DEL QUESITO E' NECESSARIO UTILIZZARE LA TABELLA DELLE DEVIAZIONI ALLEGATA",
+        "soluzione": "Rv = 357° ÷ 003°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "20",
+        "testo": "L’imbarcazione “Nunki” alle ore 19h00m, in navigazione ad E di Capo Ferro, segue una navigazione stimata con prora vera Pv = 160° ad una velocità propulsiva Vp = 7 kn.\r\nTrascorse 01h20m stima di trovarsi nella posizione individuata dalle seguenti coordinate geografiche:\r\nLat. 41° 08’,5 N - Long. 009° 37’,6 E (punto A).\r\nAl fine di verificare l’eventuale presenza di elementi perturbatori del moto, al medesimo orario (20h20m) determina la propria posizione osservando simultaneamente il Radiofaro Circolare di Capo Ferro (Lam.(3)15s52m24M) per rilevamento vero Rilv = 281° e il Faro P.ta Timone (Lam.L.(2)10s72m15M) (Isola Tavolara) per rilevamento vero Rilv = 173° (punto B).\r\nPertanto, deducendo la presenza di una corrente in zona, durante la navigazione seguita in questo intervallo temporale, determinare la direzione della corrente Dc.",
+        "soluzione": "Dc = 101° ÷ 107°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "21",
+        "testo": "L’imbarcazione “Zuben el Genubi” è in navigazione a E della Sardegna settentrionale, alle ore 08h00m, determina la propria posizione situata sul rilevamento vero Rilv = 250° dell’ex semaforo di Capo Figari ad una distanza di 4,3 miglia nautiche (punto A).\r\nDal punto A delle ore 08h00m l’unità assume una rotta per lasciare a sinistra il fanale delle Isole Nibani (Lam.4s21m2M), a una distanza di 1 miglio nautico dallo stesso (punto B) e una velocità propulsiva Vp = 6 kn.\r\nConsiderato che in zona è presente una corrente di direzione Dc = 180° e di velocità Vc = 2 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 323° ÷ 329°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "22",
+        "testo": "Il M/Y “Aldebaran” si trova in  navigazione con prora vera Pv = 000° e velocità\r\npropulsiva Vp = 7 kn.\r\nDopo un’ora di navigazione determina la propria posizione osservando la costa\r\neffettuando un punto nave A con due rilevamenti simultanei: faro di “Punta timone –tavolara” con Rilp = 118° a sinistra; faro “ Isola di Figarolo”con Rilp = 77° a sinistra.\r\nAvendo calcolato il punto stimato B, allo stesso orario, di coordinate geografiche: Lat. 40°57,5’ N – Long. 009°46,1’ E, considerato che esistono elementi perturbatori del moto, determinare la velocità della corrente Vc.",
+        "soluzione": "Vc = 0,9 ÷ 1,5 kn",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "23",
+        "testo": "Nel 2008 l’imbarcazione “Aliseo” si trova in navigazione a NE di Capo Figari (Golfo di Congianus), seguendo una rotta vera Rv = 350° ad una velocità propulsiva Vp = 7,5 kn e, alle ore 07h00m, determina la propria posizione attraverso l’osservazione simultanea dei rilevamenti veri del Faro Scoglio Mortoriotto (Lam.(2)6s10m2M) per Rilv = 317° e dell’ex Semaforo di Capo Figari per Rilv = 196° (punto A).\r\nTenuto conto che in zona vi è una corrente dalle seguenti caratteristiche Dc = 115° e Vc =2,5 kn, determinare la prora vera Pv.",
+        "soluzione": "Pv = 331° ÷ 337°",
+        "argomenti": [
+            "correnti"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "24",
+        "testo": "Avvicinandoci al Golfo di Olbia da Sud-Est con prora bussola Pb = 317° (declinazione 4°E, deviazione 6°W) e velocità propulsiva Vp = 14 kn, alle ore 06h30m rileviamo il Faro di P.ta Timone per Rilb = 272°. Successivamente, alle ore 06h42m rileviamo il Faro della Bocca di Olbia per Rilb = 255°, dove accosteremo per dirigere verso la rada di Olbia.\r\nDeterminare le coordinate geografiche del punto di accostata.",
+        "soluzione": "Lat. 40°57’,2 N ÷ 40°57’,8 N Long. 009°43’,7 E ÷ 009°44’,3 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "25",
+        "testo": "L’imbarcazione “Alpheratz” è in navigazione ad E dell’Isola Mortorio e segue una Rotta vera Rv = 348° con una velocità propulsiva Vp = 6,6 kn e, alle ore 07h 00m , determina la propria posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 41° 05’,2 N - Long. 009° 48’,0 E (punto A).\r\nAlla medesima ora, l’unità “Alpheratz” riceve una richiesta di assistenza dall’imbarcazione “Schedar” che, a causa di un’avaria al propulsore, procede con rotta vera Rv = 100° e velocità effettiva Ve = 1,5 kn.\r\nL’unità “Schedar” comunica la propria posizione situata a 8 miglia nautiche a levante\r\ndel Faro delle Isole Monaci (Lam.5s26m10M) (punto B).\r\nL’imbarcazione “Alpheratz” decide, quindi, di raggiungere l’unità in difficoltà per\r\nprestare assistenza mantenendo invariata la propria velocità.\r\nConsiderando che in zona non sono presenti elementi perturbatori del moto, determinare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 41°12’,3 N ÷ 41°12’,9 N Long. 009°43’,5 E ÷ 009°44’,1 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "26",
+        "testo": "L’imbarcazione “Hamal”, in navigazione ad E del Golfo del Pevero con Rotta vera Rv = 330° e con una velocità propulsiva Vp = 5 kn, alle ore 07h 51m determina la propria posizione individuata dalle seguenti coordinate geografiche GPS: Lat. 41° 07’,6 N - Long. 009° 39’,1 E (punto A).\r\nAlla medesima ora, l’unità “Hamal”, riceve una richiesta di assistenza\r\ndall’imbarcazione “Spica” che, a causa di un’avaria al propulsore, procede con rotta\r\nvera Rv = 170° e velocità effettiva Ve = 3,2 kn.\r\nL’unità “Spica” comunica la propria posizione situata sul rilevamento vero Rilv = 249° del Faro Isole Monaci (Lam.5s26m10M) posto ad una distanza di 8 miglia nautiche dal Faro stesso (punto B).\r\nL’imbarcazione “Hamal” decide, quindi, di raggiungere l’unità in difficoltà per prestare assistenza all’unità “Spica” mantenendo invariata la propria velocità. Considerando che in zona non sono presenti elementi perturbatori del moto, determinare le coordinate geografiche del punto D di intercettazione.",
+        "soluzione": "Lat. 41°12’,2 N ÷ 41°12’,8 N Long. 009°41’,3 E ÷ 009°41’,9 E",
+        "argomenti": [
+            "navigazione",
+            "costiera"
+        ],
+        "done": 0,
+        "crit": false
+    },
+    {
+        "id": "27",
+        "testo": "L’imbarcazione “Starfive” è in navigazione nel Golfo di Olbia; alle ore 10h 25m stima la sua posizione (punto A) rilevando il Faro di P.ta Timone (I. Tavolara) per Rlv = 127° ad una distanza di 1,8 miglia nautiche.\r\nDa detta posizione si vuole seguire Rv = 345° e nella zona è presente un vento di Grecale che crea uno scarroccio di 10°con una velocita effettiva Ve di 6,5 kn. Determinare l’ora in cui si rileva il Faro dello Scoglio Mortoriotto per Rilevamento polare a sinistra ρ =  - 90.",
+        "soluzione": "Ora traverso: 11h45m ÷ 11h51m",
+        "argomenti": [
+            "scarroccio"
+        ],
+        "done": 0,
+        "crit": false
+    }
+]
+};
+
+function storageKey(carta){ return 'exdata_' + carta; }
+
+function loadCartaData(carta) {
+  const data = datiCarte[carta] || [];
+  esercizi = data.map(r => ({
+    id: String(r.id).trim(),
+    testo: (r.testo||"").toString().trim(),
+    soluzione: (r.soluzione||"").toString().trim(),
+    argomenti: (r.argomenti||[]).map(a=>a.trim()).filter(a=>a),
+    done:0,
+    crit:false
+  }));
+  
+  // Carica statistiche salvate nel localStorage
+  const key = storageKey(carta);
+  const saved = localStorage.getItem(key);
+  if(saved) {
+    try{
+      const savedData = JSON.parse(saved);
+      // Unisci i dati base con le statistiche salvate
+      esercizi.forEach(e => {
+        const savedItem = savedData.find(s => s.id === e.id);
+        if(savedItem) {
+          e.done = savedItem.done || 0;
+          e.crit = savedItem.crit || false;
+        }
+      });
+    }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+  }
+  
+  saveToStorage();
+  updateArgomentiUI();
+  if(esercizi.length) show(esercizi[0]);
+  updatePercent();
+}
+
+function saveToStorage(){
+  const carta = document.getElementById('carta').value;
+  const key = storageKey(carta);
+  localStorage.setItem(key, JSON.stringify(esercizi));
+  
+  // Sincronizzazione con GitHub Gist
+  if(syncEnabled && gistId) {
+    syncToGist();
+  }
+}
+
+// Funzioni di sincronizzazione con GitHub Gist
+async function syncToGist() {
+  if(!gistId) return;
+  
+  const data = {
+    '5D': JSON.parse(localStorage.getItem('exdata_5D') || '[]'),
+    '42D': JSON.parse(localStorage.getItem('exdata_42D') || '[]')
+  };
+  
+  try {
+    const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `token ${githubToken}`,
+      },
+      body: JSON.stringify({
+        files: {
+          'patente_stats.json': {
+            content: JSON.stringify(data, null, 2)
+          }
+        }
+      })
+    });
+    
+    if(response.ok) {
+      console.log('Statistiche sincronizzate con GitHub Gist');
+    }
+  } catch(error) {
+    console.warn('Errore sincronizzazione:', error);
+  }
+}
+
+async function loadFromGist() {
+  if(!gistId) return;
+  
+  try {
+    const response = await fetch(`https://api.github.com/gists/${gistId}`);
+    if(response.ok) {
+      const gist = await response.json();
+      const content = gist.files['patente_stats.json']?.content;
+      
+      if(content) {
+        const data = JSON.parse(content);
+        
+        // Carica statistiche per entrambe le carte
+        if(data['5D']) {
+          localStorage.setItem('exdata_5D', JSON.stringify(data['5D']));
+        }
+        if(data['42D']) {
+          localStorage.setItem('exdata_42D', JSON.stringify(data['42D']));
+        }
+        
+        // Ricarica la carta corrente
+        switchCarta();
+        console.log('Statistiche caricate da GitHub Gist');
+      }
+    }
+  } catch(error) {
+    console.warn('Errore caricamento da Gist:', error);
+  }
+}
+
+function toggleSync() {
+  syncEnabled = !syncEnabled;
+  const btn = document.getElementById('syncBtn');
+  
+  if(syncEnabled) {
+    gistId = 'a512d33779f311ec6f53e2d5cb4fec79';
+    localStorage.setItem('gistId', gistId);
+    btn.textContent = '🔄 Sincronizzazione ON';
+    btn.style.background = '#2ecc71';
+    loadFromGist(); // Carica statistiche esistenti
+  } else {
+    btn.textContent = '🔄 Sincronizzazione OFF';
+    btn.style.background = '#e74c3c';
+    gistId = '';
+    localStorage.removeItem('gistId');
+  }
+}
+
+function switchCarta(){
+  const carta = document.getElementById('carta').value;
+  loadCartaData(carta);
+}
+
+function updateArgomentiUI(){
+  const sel = document.getElementById('argomenti');
+  sel.innerHTML='';
+  const optAll=document.createElement('option'); optAll.value='__ALL__'; optAll.text='Tutti gli argomenti'; sel.appendChild(optAll);
+  const set = new Set();
+  esercizi.forEach(e=>e.argomenti.forEach(a=>set.add(a)));
+  Array.from(set).sort().forEach(a=>{ const o=document.createElement('option'); o.value=a; o.text=a; sel.appendChild(o); });
+  sel.value='__ALL__';
+}
+
+function filtered(){
+  let list=[...esercizi];
+  if(document.getElementById('onlyCritici').checked) list=list.filter(e=>e.crit);
+  if(document.getElementById('escludiCritici').checked) list=list.filter(e=>!e.crit);
+  const sel=document.getElementById('argomenti');
+  const selected=Array.from(sel.selectedOptions).map(o=>o.value);
+  if(selected.length && !(selected.length===1 && selected[0]==='__ALL__')){
+    list=list.filter(e=>e.argomenti.some(a=>selected.includes(a)));
+  }
+  return list;
+}
+
+function show(e){
+  if(!e) return;
+  idx=esercizi.indexOf(e);
+  document.getElementById('numero').innerText=e.id;
+  document.getElementById('stato').innerHTML=(e.crit?'<span class="badge crit">Critico</span>':'')+(e.done>0?'<span class="badge done">Svolto '+e.done+'x</span>':'');
+  document.getElementById('testo').innerText=e.testo||'(vuoto)';
+  const solDiv=document.getElementById('soluzione'); solDiv.style.display='none'; solDiv.innerText=e.soluzione||'(vuoto)';
+  updatePercent();
+}
+
+function nextRandom(){
+  let list=filtered();
+  if(!list.length) return alert("Nessun esercizio disponibile.");
+  if(document.getElementById('menoSvolti').checked){ const minDone=Math.min(...list.map(x=>x.done)); list=list.filter(x=>x.done===minDone); }
+  show(list[Math.floor(Math.random()*list.length)]);
+}
+
+function nextSequential(){
+  const list=filtered();
+  if(!list.length) return alert("Nessun esercizio disponibile.");
+  let p=list.findIndex(e=>e.id===esercizi[idx]?.id); if(p===-1) p=0;
+  show(list[(p+1)%list.length]);
+}
+
+function prev(){
+  const list=filtered();
+  if(!list.length) return alert("Nessun esercizio disponibile.");
+  let p=list.findIndex(e=>e.id===esercizi[idx]?.id); if(p===-1)p=0;
+  show(list[(p-1+list.length)%list.length]);
+}
+
+function toggleSoluzione(){
+  const sol=document.getElementById('soluzione');
+  sol.style.display=(sol.style.display==='none')?'block':'none';
+}
+
+function apriNauticando() {
+  const cartaAttiva = document.getElementById('carta').value;
+  const esercizioCorrente = esercizi[idx];
+  if (!esercizioCorrente) return;
+  
+  const numeroEsercizio = esercizioCorrente.id.padStart(2, '0');
+  const url = `https://www.nauticando.net/carteggio-nautico/oltre-12-miglia-MIMS/carta-${cartaAttiva.toLowerCase()}-${numeroEsercizio}`;
+  window.open(url, '_blank');
+}
+
+function done(){ if(!esercizi[idx]) return; esercizi[idx].done=(esercizi[idx].done||0)+1; saveToStorage(); show(esercizi[idx]); }
+function toggleCritico(){ if(!esercizi[idx]) return; esercizi[idx].crit=!esercizi[idx].crit; saveToStorage(); show(esercizi[idx]); }
+function resetSingolo(){ if(!esercizi[idx]) return; esercizi[idx].done=0; esercizi[idx].crit=false; saveToStorage(); show(esercizi[idx]); }
+function resetGenerale(){ if(!confirm("Reset COMPLETO della carta?")) return; esercizi.forEach(e=>{e.done=0;e.crit=false;}); saveToStorage(); if(esercizi.length) show(esercizi[0]); updatePercent(); }
+
+function gotoNumber(){
+  const n=parseInt(document.getElementById('gotoNum').value);
+  if(isNaN(n)) return alert("Inserisci un numero valido.");
+  const e=esercizi.find(x=>String(x.id)===String(n));
+  if(!e) return alert("Esercizio non trovato.");
+  show(e);
+}
+
+function updatePercent(){ const doneCount=esercizi.filter(e=>e.done>0).length; document.getElementById('percent').innerText=`Avanzamento: ${doneCount}/${esercizi.length} (${esercizi.length?Math.round(doneCount/esercizi.length*100):0}%)`; }
+
+(function init(){
+  document.getElementById('carta').innerHTML='';
+  ['5D','42D'].forEach(c=>{const opt=document.createElement('option'); opt.value=c; opt.text=c; document.getElementById('carta').appendChild(opt);});
+  document.getElementById('carta').value='5D';
+  
+  // Carica token salvato
+  const savedToken = localStorage.getItem('githubToken');
+  if(savedToken) {
+    githubToken = savedToken;
+    document.getElementById('githubTokenInput').value = savedToken;
+  }
+  
+  // Carica impostazioni sincronizzazione
+  const savedGistId = localStorage.getItem('gistId');
+  if(savedGistId) {
+    gistId = savedGistId;
+  }
+  
+  // Setup sync button
+  updateSyncButton();
+  
+  switchCarta();
+})();
+
+function updateSyncButton() {
+  const btn = document.getElementById('syncBtn');
+  if(githubToken && gistId) {
+    syncEnabled = true;
+    btn.textContent = '🔄 Sincronizzazione ON';
+    btn.style.background = '#2ecc71';
+    loadFromGist();
+  } else {
+    syncEnabled = false;
+    btn.textContent = '🔄 Sincronizzazione OFF';
+    btn.style.background = '#e74c3c';
+  }
+}
+
+function toggleSync() {
+  const tokenInput = document.getElementById('githubTokenInput').value;
+  if(tokenInput) {
+    githubToken = tokenInput;
+    localStorage.setItem('githubToken', tokenInput);
+  } else {
+    githubToken = '';
+    localStorage.removeItem('githubToken');
+  }
+  updateSyncButton();
+}
+</script>
+</body>
+</html>
