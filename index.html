@@ -1731,7 +1731,7 @@ function apriNauticando() {
   const esercizioCorrente = esercizi[idx];
   if (!esercizioCorrente) return;
   
-  const numeroEsercizio = esercizioCorrente.id.padStart(2, '0');
+  const numeroEsercizio = parseInt(esercizioCorrente.id) < 10 ? esercizioCorrente.id : esercizioCorrente.id.padStart(2, '0');
   const url = `https://www.nauticando.net/carteggio-nautico/oltre-12-miglia-MIMS/carta-${cartaAttiva.toLowerCase()}-${numeroEsercizio}`;
   window.open(url, '_blank');
 }
