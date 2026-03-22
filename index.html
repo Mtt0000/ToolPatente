@@ -1844,7 +1844,7 @@ function storageKey(carta){ return 'exdata_' + carta; }
 function loadCartaData(carta) {
   let data;
   if(carta === 'TUTTE') {
-    // Combina dati da entrambe le carte
+    // Combina dati da entrambe le carte mantenendo l'ordine: prima 5D, poi 42D
     data = [...(datiCarte['5D'] || []), ...(datiCarte['42D'] || [])];
   } else {
     data = datiCarte[carta] || [];
