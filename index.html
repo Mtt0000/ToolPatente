@@ -1986,7 +1986,7 @@ function filtered(){
   let list=[...esercizi];
   if(document.getElementById('onlyCritici').checked) list=list.filter(e=>e.crit);
   if(document.getElementById('escludiCritici').checked) list=list.filter(e=>!e.crit);
-  if(document.getElementById('soloTabella').checked) list=list.filter(e=>e.tabella===true);
+  if(document.getElementById('menoSvolti').checked){ const minDone=Math.min(...list.map(x=>x.done)); list=list.filter(x=>x.done===minDone); }
   const sel=document.getElementById('argomenti');
   const selected=Array.from(sel.selectedOptions).map(o=>o.value);
   if(selected.length && !(selected.length===1 && selected[0]==='__ALL__')){
@@ -2043,7 +2043,6 @@ function onArgomentiChange(){
 function nextRandom(){
   let list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
-  if(document.getElementById('menoSvolti').checked){ const minDone=Math.min(...list.map(x=>x.done)); list=list.filter(x=>x.done===minDone); }
   show(list[Math.floor(Math.random()*list.length)]);
 }
 
