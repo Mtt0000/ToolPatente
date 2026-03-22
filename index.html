@@ -2033,10 +2033,21 @@ function filtered(){
   return list;
 }
 
+function getCardOfExercise(exerciseId) {
+  const id = String(exerciseId);
+  if(datiCarte['5D']?.some(e => String(e.id) === id)) return '5D';
+  if(datiCarte['42D']?.some(e => String(e.id) === id)) return '42D';
+  return '?';
+}
+
 function show(e){
   if(!e) return;
   idx=esercizi.indexOf(e);
-  document.getElementById('numero').innerText=e.id;
+  
+  // Determine which card this exercise belongs to
+  const cardOfExercise = getCardOfExercise(e.id);
+  document.getElementById('numero').innerText = e.id + ' [' + cardOfExercise + ']';
+  
   document.getElementById('testo').innerText=e.testo||'(vuoto)';
   // soluzione: chiudi e precarica
   const solDiv=document.getElementById('soluzione');
