@@ -377,7 +377,7 @@ textarea{
         </div>
         <div class="divider"></div>
         <label class="field-lbl">Argomenti</label>
-        <select id="argomenti" multiple size="5"></select>
+        <select id="argomenti" multiple size="5" onchange="onArgomentiChange()"></select>
       </div>
     </div>
 
@@ -2033,6 +2033,13 @@ function show(e){
   updatePercent();
 }
 
+function onArgomentiChange(){
+  const list=filtered();
+  if(!list.length) return;
+  const currentId=String(esercizi[idx]?.id);
+  if(!list.find(e=>String(e.id)===currentId)) show(list[0]);
+}
+
 function nextRandom(){
   let list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
@@ -2043,14 +2050,18 @@ function nextRandom(){
 function nextSequential(){
   const list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
-  let p=list.findIndex(e=>e.id===esercizi[idx]?.id); if(p===-1) p=0;
+  const currentId=String(esercizi[idx]?.id);
+  let p=list.findIndex(e=>String(e.id)===currentId);
+  if(p===-1) p=-1;
   show(list[(p+1)%list.length]);
 }
 
 function prev(){
   const list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
-  let p=list.findIndex(e=>e.id===esercizi[idx]?.id); if(p===-1)p=0;
+  const currentId=String(esercizi[idx]?.id);
+  let p=list.findIndex(e=>String(e.id)===currentId);
+  if(p===-1) p=0;
   show(list[(p-1+list.length)%list.length]);
 }
 
