@@ -1842,7 +1842,14 @@ const datiCarte = {
 function storageKey(carta){ return 'exdata_' + carta; }
 
 function loadCartaData(carta) {
-  const data = datiCarte[carta] || [];
+  let data;
+  if(carta === 'TUTTE') {
+    // Combina dati da entrambe le carte
+    data = [...(datiCarte['5D'] || []), ...(datiCarte['42D'] || [])];
+  } else {
+    data = datiCarte[carta] || [];
+  }
+  
   esercizi = data.map(r => ({
     id: String(r.id).trim(),
     testo: (r.testo||"").toString().trim(),
@@ -1853,20 +1860,41 @@ function loadCartaData(carta) {
   }));
   
   // Carica statistiche salvate nel localStorage
-  const key = storageKey(carta);
-  const saved = localStorage.getItem(key);
-  if(saved) {
-    try{
-      const savedData = JSON.parse(saved);
-      // Unisci i dati base con le statistiche salvate
-      esercizi.forEach(e => {
-        const savedItem = savedData.find(s => s.id === e.id);
-        if(savedItem) {
-          e.done = savedItem.done || 0;
-          e.crit = savedItem.crit || false;
-        }
-      });
-    }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+  if(carta === 'TUTTE') {
+    // Carica statistiche da entrambe le carte
+    ['5D','42D'].forEach(card => {
+      const key = storageKey(card);
+      const saved = localStorage.getItem(key);
+      if(saved) {
+        try{
+          const savedData = JSON.parse(saved);
+          // Unisci i dati base con le statistiche salvate
+          esercizi.forEach(e => {
+            const savedItem = savedData.find(s => s.id === e.id);
+            if(savedItem) {
+              e.done = savedItem.done || 0;
+              e.crit = savedItem.crit || false;
+            }
+          });
+        }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+      }
+    });
+  } else {
+    const key = storageKey(carta);
+    const saved = localStorage.getItem(key);
+    if(saved) {
+      try{
+        const savedData = JSON.parse(saved);
+        // Unisci i dati base con le statistiche salvate
+        esercizi.forEach(e => {
+          const savedItem = savedData.find(s => s.id === e.id);
+          if(savedItem) {
+            e.done = savedItem.done || 0;
+            e.crit = savedItem.crit || false;
+          }
+        });
+      }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+    }
   }
   
   saveToStorage();
@@ -1877,8 +1905,18 @@ function loadCartaData(carta) {
 
 function saveToStorage(){
   const carta = document.getElementById('carta').value;
-  const key = storageKey(carta);
-  localStorage.setItem(key, JSON.stringify(esercizi));
+  
+  if(carta === 'TUTTE') {
+    // Salva le statistiche nelle singole carte
+    ['5D','42D'].forEach(card => {
+      const cardExercises = esercizi.filter(e => datiCarte[card]?.some(d => String(d.id) === String(e.id)));
+      const key = storageKey(card);
+      localStorage.setItem(key, JSON.stringify(cardExercises));
+    });
+  } else {
+    const key = storageKey(carta);
+    localStorage.setItem(key, JSON.stringify(esercizi));
+  }
   
   // Sincronizzazione con GitHub Gist
   if(syncEnabled && gistId) {
@@ -2108,8 +2146,9 @@ function updatePercent(){
 
 (function init(){
   document.getElementById('carta').innerHTML='';
+  const optAll=document.createElement('option'); optAll.value='TUTTE'; optAll.text='TUTTE'; document.getElementById('carta').appendChild(optAll);
   ['5D','42D'].forEach(c=>{const opt=document.createElement('option'); opt.value=c; opt.text=c; document.getElementById('carta').appendChild(opt);});
-  document.getElementById('carta').value='5D';
+  document.getElementById('carta').value='TUTTE';
   
   // Carica token salvato
   const savedToken = localStorage.getItem('githubToken');
