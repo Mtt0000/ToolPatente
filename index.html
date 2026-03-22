@@ -1861,19 +1861,26 @@ function loadCartaData(carta) {
   
   // Carica statistiche salvate nel localStorage
   if(carta === 'TUTTE') {
-    // Carica statistiche da entrambe le carte
+    // Per TUTTE, dobbiamo fare il match esatto basato su ID e contenuto per evitare conflitti
     ['5D','42D'].forEach(card => {
       const key = storageKey(card);
       const saved = localStorage.getItem(key);
       if(saved) {
         try{
           const savedData = JSON.parse(saved);
-          // Unisci i dati base con le statistiche salvate
+          // Unisci i dati base con le statistiche salvate facendo match esatto
           esercizi.forEach(e => {
-            const savedItem = savedData.find(s => s.id === e.id);
-            if(savedItem) {
-              e.done = savedItem.done || 0;
-              e.crit = savedItem.crit || false;
+            // Cerca l'esercizio corrispondente nei dati originali di questa carta
+            const originalExercise = datiCarte[card]?.find(d => 
+              String(d.id) === String(e.id) && 
+              d.testo === e.testo
+            );
+            if(originalExercise) {
+              const savedItem = savedData.find(s => String(s.id) === String(e.id));
+              if(savedItem) {
+                e.done = savedItem.done || 0;
+                e.crit = savedItem.crit || false;
+              }
             }
           });
         }catch(e){ console.warn('Errore caricamento statistiche:', e); }
