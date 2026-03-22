@@ -374,6 +374,7 @@ textarea{
           <label class="cb-item"><input type="checkbox" id="onlyCritici"> Solo critici</label>
           <label class="cb-item"><input type="checkbox" id="menoSvolti" checked> Priorità meno svolti</label>
           <label class="cb-item"><input type="checkbox" id="escludiCritici"> Escludi critici</label>
+          <label class="cb-item"><input type="checkbox" id="soloTabella"> 📋 Solo con tabella</label>
         </div>
         <div class="divider"></div>
         <label class="field-lbl">Argomenti</label>
@@ -1059,7 +1060,8 @@ const datiCarte = {
             "costiera"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "62",
@@ -1070,7 +1072,8 @@ const datiCarte = {
             "costiera"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "63",
@@ -1204,7 +1207,8 @@ const datiCarte = {
             "correnti"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "76",
@@ -1637,7 +1641,8 @@ const datiCarte = {
             "costiera"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "10",
@@ -1741,7 +1746,8 @@ const datiCarte = {
             "correnti"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "20",
@@ -1976,6 +1982,7 @@ function filtered(){
   let list=[...esercizi];
   if(document.getElementById('onlyCritici').checked) list=list.filter(e=>e.crit);
   if(document.getElementById('escludiCritici').checked) list=list.filter(e=>!e.crit);
+  if(document.getElementById('soloTabella').checked) list=list.filter(e=>e.tabella===true);
   const sel=document.getElementById('argomenti');
   const selected=Array.from(sel.selectedOptions).map(o=>o.value);
   if(selected.length && !(selected.length===1 && selected[0]==='__ALL__')){
