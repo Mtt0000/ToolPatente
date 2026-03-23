@@ -2349,16 +2349,20 @@
         function storageKey(carta) { return 'exdata_' + carta; }
 
         function loadCartaData(carta) {
-            let data;
+            // Build the flat exercise list, tagging each entry with its source deck
+            let rawList;
             if (carta === 'TUTTE') {
-                // Combina dati da entrambe le carte mantenendo l'ordine: prima 5D, poi 42D
-                data = [...(datiCarte['5D'] || []), ...(datiCarte['42D'] || [])];
+                rawList = [
+                    ...(datiCarte['5D'] || []).map(r => ({ ...r, _carta: '5D' })),
+                    ...(datiCarte['42D'] || []).map(r => ({ ...r, _carta: '42D' }))
+                ];
             } else {
-                data = datiCarte[carta] || [];
+                rawList = (datiCarte[carta] || []).map(r => ({ ...r, _carta: carta }));
             }
 
-            esercizi = data.map(r => ({
+            esercizi = rawList.map(r => ({
                 id: String(r.id).trim(),
+                carta: r._carta,          // ← fonte dell'esercizio, sempre affidabile
                 testo: (r.testo || "").toString().trim(),
                 soluzione: (r.soluzione || "").toString().trim(),
                 argomenti: (r.argomenti || []).map(a => a.trim()).filter(a => a),
@@ -2366,50 +2370,24 @@
                 crit: false
             }));
 
-            // Carica statistiche salvate nel localStorage
-            if (carta === 'TUTTE') {
-                // Per TUTTE, dobbiamo fare il match esatto basato su ID e contenuto per evitare conflitti
-                ['5D', '42D'].forEach(card => {
-                    const key = storageKey(card);
-                    const saved = localStorage.getItem(key);
-                    if (saved) {
-                        try {
-                            const savedData = JSON.parse(saved);
-                            // Unisci i dati base con le statistiche salvate facendo match esatto
-                            esercizi.forEach(e => {
-                                // Cerca l'esercizio corrispondente nei dati originali di questa carta
-                                const originalExercise = datiCarte[card]?.find(d =>
-                                    String(d.id) === String(e.id) &&
-                                    d.testo === e.testo
-                                );
-                                if (originalExercise) {
-                                    const savedItem = savedData.find(s => String(s.id) === String(e.id));
-                                    if (savedItem) {
-                                        e.done = savedItem.done || 0;
-                                        e.crit = savedItem.crit || false;
-                                    }
-                                }
-                            });
-                        } catch (e) { console.warn('Errore caricamento statistiche:', e); }
-                    }
-                });
-            } else {
-                const key = storageKey(carta);
+            // Restore saved statistics – match on both id AND carta to avoid collisions
+            const cardsToLoad = carta === 'TUTTE' ? ['5D', '42D'] : [carta];
+            cardsToLoad.forEach(card => {
+                const key = storageKey(card);
                 const saved = localStorage.getItem(key);
-                if (saved) {
-                    try {
-                        const savedData = JSON.parse(saved);
-                        // Unisci i dati base con le statistiche salvate
-                        esercizi.forEach(e => {
-                            const savedItem = savedData.find(s => s.id === e.id);
-                            if (savedItem) {
-                                e.done = savedItem.done || 0;
-                                e.crit = savedItem.crit || false;
-                            }
-                        });
-                    } catch (e) { console.warn('Errore caricamento statistiche:', e); }
-                }
-            }
+                if (!saved) return;
+                try {
+                    const savedData = JSON.parse(saved);
+                    esercizi.forEach(e => {
+                        if (e.carta !== card) return;
+                        const savedItem = savedData.find(s => String(s.id) === String(e.id));
+                        if (savedItem) {
+                            e.done = savedItem.done || 0;
+                            e.crit = savedItem.crit || false;
+                        }
+                    });
+                } catch (err) { console.warn('Errore caricamento statistiche:', err); }
+            });
 
             saveToStorage();
             updateArgomentiUI();
@@ -2536,31 +2514,29 @@
 
         function filtered() {
             let list = [...esercizi];
+            // 1. Critico / escludi critici
             if (document.getElementById('onlyCritici').checked) list = list.filter(e => e.crit);
             if (document.getElementById('escludiCritici').checked) list = list.filter(e => !e.crit);
-            if (document.getElementById('menoSvolti').checked) { const minDone = Math.min(...list.map(x => x.done)); list = list.filter(x => x.done === minDone); }
+            // 2. Filtro argomenti
             const sel = document.getElementById('argomenti');
             const selected = Array.from(sel.selectedOptions).map(o => o.value);
             if (selected.length && !(selected.length === 1 && selected[0] === '__ALL__')) {
                 list = list.filter(e => e.argomenti.some(a => selected.includes(a)));
             }
+            // 3. Priorità meno svolti (applicato DOPO gli altri filtri)
+            if (document.getElementById('menoSvolti').checked && list.length) {
+                const minDone = Math.min(...list.map(x => x.done));
+                list = list.filter(x => x.done === minDone);
+            }
             return list;
-        }
-
-        function getCardOfExercise(exerciseId) {
-            const id = String(exerciseId);
-            if (datiCarte['5D']?.some(e => String(e.id) === id)) return '5D';
-            if (datiCarte['42D']?.some(e => String(e.id) === id)) return '42D';
-            return '?';
         }
 
         function show(e) {
             if (!e) return;
             idx = esercizi.indexOf(e);
 
-            // Determine which card this exercise belongs to
-            const cardOfExercise = getCardOfExercise(e.id);
-            document.getElementById('numero').innerText = e.id + ' [' + cardOfExercise + ']';
+            // Mostra solo il numero, senza suffisso carta
+            document.getElementById('numero').innerText = e.id;
 
             document.getElementById('testo').innerText = e.testo || '(vuoto)';
             // soluzione: chiudi e precarica
@@ -2586,11 +2562,10 @@
                 if (e.crit) card.classList.add('st-crit');
                 else if (e.done > 0) card.classList.add('st-done');
             }
-            // carta badge
-            const cartaSel = document.getElementById('carta');
+            // carta badge: usa la carta dell'esercizio corrente (non il valore della select)
             const cb = document.getElementById('carta-badge');
-            if (cb && cartaSel) cb.textContent = cartaSel.value;
-            // legacy stato (non usato ma presente)
+            if (cb) cb.textContent = e.carta || '—';
+            // legacy stato
             const stato = document.getElementById('stato');
             if (stato) stato.innerHTML = '';
             updatePercent();
@@ -2636,8 +2611,9 @@
         }
 
         function apriNauticando() {
-            const carta = document.getElementById('carta').value;
             const e = esercizi[idx]; if (!e) return;
+            // Usa la carta dell'esercizio, non il valore della tendina (che potrebbe essere "TUTTE")
+            const carta = e.carta || document.getElementById('carta').value;
             const n = parseInt(e.id);
             const num = n < 10 ? String(n) : e.id.padStart(2, '0');
             window.open('https://www.nauticando.net/carteggio-nautico/oltre-12-miglia-MIMS/carta-' + carta.toLowerCase() + '-' + num, '_blank');
