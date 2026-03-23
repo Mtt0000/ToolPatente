@@ -1,139 +1,431 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Allenamento Patente Nautica</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Patente Nautica – Allenamento</title>
 <style>
-body { font-family: sans-serif; margin:0; padding:0; background:#111; color:#eee; }
-.wrapper { max-width:1200px; margin:auto; padding:20px; }
-h2 { font-weight:600; text-align:center; margin-bottom:20px; }
-.card { background:#1a1a1a; padding:20px; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.5); margin:20px 0; }
-section h3 { margin-top:0; margin-bottom:15px; }
-.row { display:flex; flex-wrap:wrap; gap:15px; }
-.col { flex:1; min-width:220px; }
-select, button, input[type=number], input[type=text] {
-  padding:10px 14px; font-size:16px; border-radius:8px; border:1px solid #333; background:#222; color:#eee; box-sizing:border-box;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0d;--s1:#181818;--s2:#1f1f1f;--s3:#272727;--s4:#303030;
+  --bd:#2c2c2c;--bd2:#3a3a3a;
+  --tx:#e8e8e8;--sub:#888;--faint:#4a4a4a;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
+  --amber:#f59e0b;--teal:#0ea5e9;
+  --r:12px;--r2:8px;
 }
-button:hover { background:#333; cursor:pointer; }
-#numero { font-size:70px; font-weight:bold; margin:15px 0; text-align:center; word-break:break-word; }
-.badge { display:inline-block; padding:4px 10px; border-radius:6px; font-size:14px; margin:3px; }
-.crit { background:#a00000; color:#fff; }
-.done { background:#2ecc71; color:#111; }
-#testo { text-align:left; margin-top:10px; font-size:18px; line-height:1.4; word-wrap:break-word; }
-#soluzione { text-align:left; margin-top:10px; font-size:16px; color:#9f9; word-wrap:break-word; display:none; }
-textarea { width:100%; height:160px; background:#000; color:#0f0; padding:10px; border-radius:8px; }
-.center { text-align:center; }
-.btn-row { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin:12px 0; flex-direction:row; }
-button.nav { background:#007bff; color:#fff; }
-button.reset { background:#f1c40f; color:#111; }
-button.critico { background:#e74c3c; color:#fff; }
-button.done { background:#2ecc71; color:#111; }
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;
+  background:var(--bg);color:var(--tx);
+  padding-bottom:76px;
+}
+
+/* ── HEADER ── */
+.hdr{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,13,13,.97);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--bd);
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;gap:14px;
+  padding:10px 18px;
+}
+.hdr-title{font-size:15px;font-weight:800;white-space:nowrap;}
+.hdr-title em{color:var(--blue);font-style:normal;}
+.prog-track{height:4px;background:var(--s4);border-radius:2px;overflow:hidden;}
+.prog-fill {height:100%;background:var(--green);width:0%;transition:width .5s;border-radius:2px;}
+.prog-label{font-size:12px;font-weight:700;color:var(--green);white-space:nowrap;}
+
+/* ── PAGE ── */
+.page{
+  max-width:1100px;margin:0 auto;padding:16px;
+  display:grid;
+  grid-template-columns:1fr 310px;
+  gap:16px;align-items:start;
+}
+.col-l{display:flex;flex-direction:column;gap:12px;}
+.col-r{display:flex;flex-direction:column;gap:10px;}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{
+  font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--faint);margin-bottom:8px;
+}
+
+/* ── PANEL ── */
+.panel{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);}
+.panel-body{padding:14px;}
+
+/* ── EXERCISE CARD ── */
+.ex-card{
+  border:1px solid var(--bd);
+  display:flex;flex-direction:column;  /* KEY: buttons always at bottom */
+}
+.ex-card.st-crit{border-color:rgba(239,68,68,.45);}
+.ex-card.st-done{border-color:rgba(34,197,94,.35);}
+
+/* meta bar */
+.ex-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;
+  background:var(--s2);border-bottom:1px solid var(--bd);
+  border-radius:var(--r) var(--r) 0 0;
+  gap:10px;flex-shrink:0;
+}
+.ex-num-wrap{display:flex;align-items:baseline;gap:6px;}
+.ex-lbl-n{font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.8px;}
+#numero{font-size:30px;font-weight:900;line-height:1;color:#fff;}
+.ex-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.carta-chip{
+  font-size:11px;font-weight:700;padding:3px 9px;
+  border-radius:5px;background:var(--s3);
+  border:1px solid var(--bd2);color:var(--sub);letter-spacing:.5px;
+}
+.badge-row{display:flex;gap:4px;flex-wrap:wrap;}
+.badge{padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;}
+.badge-crit{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.3);}
+.badge-done{background:rgba(34,197,94,.11);color:#86efac;border:1px solid rgba(34,197,94,.25);}
+
+/* argomenti */
+.arg-bar{
+  display:flex;flex-wrap:wrap;gap:4px;
+  padding:7px 16px;
+  background:var(--s1);border-bottom:1px solid var(--bd);
+  min-height:30px;align-items:center;flex-shrink:0;
+}
+.arg-pill{
+  font-size:11px;padding:2px 8px;border-radius:4px;
+  background:var(--s3);color:var(--sub);border:1px solid var(--bd2);
+}
+
+/* testo — area fissa con scroll interno */
+.ex-testo-wrap{
+  padding:18px 18px 14px;
+  height:360px;          /* altezza fissa */
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--bd2) transparent;
+  flex-shrink:0;
+}
+.ex-testo-wrap::-webkit-scrollbar{width:4px;}
+.ex-testo-wrap::-webkit-scrollbar-track{background:transparent;}
+.ex-testo-wrap::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+#testo{font-size:16px;line-height:1.72;color:#d5d5d5;word-break:break-word;}
+
+/* soluzione toggle */
+.sol-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;
+  background:var(--s2);border-top:1px solid var(--bd);
+  cursor:pointer;user-select:none;flex-shrink:0;
+}
+.sol-bar-left{display:flex;align-items:center;gap:8px;flex:1;}
+.sol-chevron{
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  background:var(--s3);border:1px solid var(--bd2);border-radius:50%;
+  font-size:11px;color:var(--sub);transition:transform .2s;flex-shrink:0;
+}
+.sol-open .sol-chevron{transform:rotate(180deg);}
+.sol-lbl{font-size:13px;color:var(--sub);font-weight:600;}
+#soluzione{
+  padding:14px 18px;
+  font-size:15px;color:#86efac;line-height:1.6;
+  background:rgba(34,197,94,.04);
+  border-top:1px solid rgba(34,197,94,.15);
+  display:none;word-break:break-word;
+  max-height:220px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--bd2) transparent;
+  flex-shrink:0;
+}
+
+/* strip buttons */
+.strip{display:grid;border-top:1px solid var(--bd);flex-shrink:0;}
+.strip-3{grid-template-columns:1fr 1fr 1fr;}
+.strip-2{grid-template-columns:1fr 1fr;}
+.strip button{
+  background:transparent;color:var(--tx);
+  border:none;border-right:1px solid var(--bd);
+  padding:14px 8px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:filter .15s;border-radius:0;
+}
+.strip button:last-child{border-right:none;}
+.strip button:hover{filter:brightness(1.2);}
+.strip button:active{filter:brightness(.85);}
+/* navigazione */
+.c-blue {background:rgba(59,130,246,.18);color:#93c5fd;}
+.c-muted{background:var(--s2);color:var(--sub);}
+/* azioni principali */
+.c-green{background:rgba(34,197,94,.18);color:#86efac;}
+.c-red  {background:rgba(239,68,68,.18);color:#fca5a5;}
+/* reset */
+.c-amber{background:rgba(245,158,11,.12);color:#fcd34d;}
+.strip-last button:first-child{border-radius:0 0 0 var(--r);}
+.strip-last button:last-child {border-radius:0 0 var(--r) 0;}
+
+/* ── STATS ── */
+.stat-bar{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--bd);
+  border-radius:var(--r);overflow:hidden;border:1px solid var(--bd);
+}
+.stat-item{background:var(--s2);padding:12px 8px;text-align:center;}
+.stat-val{font-size:22px;font-weight:900;line-height:1;}
+.stat-key{font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin-top:3px;}
+.c-g{color:var(--green);} .c-r{color:var(--red);} .c-b{color:var(--blue);}
+
+/* ── FORM ── */
+.cb-list{display:flex;flex-direction:column;gap:8px;}
+.cb-item{
+  display:flex;align-items:center;gap:9px;
+  font-size:14px;cursor:pointer;padding:8px 10px;
+  border-radius:var(--r2);background:var(--s2);border:1px solid var(--bd);
+  user-select:none;transition:background .12s;
+}
+.cb-item:hover{background:var(--s3);}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;}
+select,input[type=number],input[type=text],input[type=password]{
+  width:100%;padding:9px 11px;font-size:14px;
+  border-radius:var(--r2);border:1px solid var(--bd2);
+  background:var(--s2);color:var(--tx);outline:none;transition:border-color .15s;
+}
+select:focus,input:focus{border-color:var(--blue);}
+.field-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--faint);display:block;margin-bottom:6px;}
+.divider{height:1px;background:var(--bd);margin:12px 0;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+button.btn{
+  padding:10px 12px;font-size:13px;font-weight:700;
+  border-radius:var(--r2);border:none;cursor:pointer;color:#fff;transition:opacity .15s;
+}
+button.btn:hover{opacity:.85;} button.btn:active{opacity:.65;}
+.btn-blue {background:var(--blue);}
+.btn-green{background:var(--green);color:#052e16;}
+.btn-muted{background:var(--s4);color:var(--sub);}
+.btn-teal {background:var(--teal);}
+.goto-row{display:flex;gap:8px;}
+.goto-row input{flex:1;} .goto-row button{flex:0 0 auto;}
+textarea{
+  width:100%;height:110px;background:#000;color:#0f0;
+  padding:9px;border-radius:var(--r2);border:1px solid var(--bd2);
+  font-size:11px;font-family:monospace;resize:vertical;margin-top:8px;
+}
+#countLista{font-size:11px;color:var(--sub);margin:6px 0 2px;}
+.sync-note{font-size:11px;color:var(--faint);line-height:1.55;margin-top:10px;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:84px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--s3);border:1px solid var(--bd2);
+  color:var(--tx);border-radius:8px;
+  padding:9px 18px;font-size:13px;font-weight:600;
+  opacity:0;transition:opacity .22s,transform .22s;
+  z-index:9999;white-space:nowrap;pointer-events:none;
+  box-shadow:0 6px 24px rgba(0,0,0,.6);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── MOBILE BAR ── */
+.mob-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:rgba(18,18,18,.97);backdrop-filter:blur(12px);
+  border-top:1px solid var(--bd);
+  padding:8px 10px;z-index:200;gap:6px;
+}
+.mob-bar button.btn{flex:1;padding:11px 4px;font-size:12px;}
+
+/* ── KB HINT ── */
+.kbhint{font-size:11px;color:var(--faint);text-align:center;padding:4px 0;display:none;}
+.kbd{display:inline-block;padding:1px 5px;background:var(--s3);border:1px solid var(--bd2);border-radius:4px;font-size:10px;font-family:monospace;color:var(--sub);}
+
+/* legacy */
+#stato,#percent{display:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  body{padding-bottom:70px;}
+  .page{grid-template-columns:1fr;padding:10px;gap:10px;}
+  .mob-bar{display:flex;}
+  #numero{font-size:26px;}
+  #testo{font-size:15px;}
+  .hdr{padding:9px 14px;gap:10px;}
+  .hdr-title{font-size:13px;}
+  .strip button{padding:12px 4px;font-size:12px;}
+  .panel-body{padding:12px;}
+  .ex-testo-wrap{height:280px;}
+}
+@media(max-width:360px){
+  #numero{font-size:22px;}
+  #testo{font-size:14px;}
+  .stat-val{font-size:18px;}
+  .ex-testo-wrap{height:220px;}
+}
 </style>
 </head>
 <body>
-<div class="wrapper">
-<h2>Allenamento Patente Nautica</h2>
 
+<header class="hdr">
+  <div class="hdr-title">⚓ <em>Patente</em> Nautica</div>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+  <span class="prog-label" id="prog-txt">0 / 0</span>
+</header>
 
-<div class="card">
-  <section class="center">
-    <h3>Esercizio</h3>
-    <div id="numero">-</div>
-    <div id="testo"></div>
-    <div class="btn-row">
-      <button class="done" onclick="toggleSoluzione()">Mostra / Nascondi soluzione</button>
-      <button class="nav" onclick="apriNauticando()" style="background:#0066cc;">Nauticando</button>
-    </div>
-    <div id="soluzione"></div>
+<div class="toast" id="toast"></div>
 
-    <div class="btn-row">
-      <button class="nav" onclick="nextRandom()">🎲 Random</button>
-      <button class="nav" onclick="prev()">⬅️ Indietro</button>
-      <button class="nav" onclick="nextSequential()">Avanti ➡️</button>
- </div>
-<div class="btn-row">
-      <button class="done" onclick="done()">Segna svolto</button>
-      <button class="critico" onclick="toggleCritico()">Segna critico</button> 
-</div>
-<div class="btn-row">
-      <button class="reset" onclick="resetSingolo()">Reset esercizio</button>
-      <button class="reset" onclick="resetGenerale()">Reset carta</button>
-    </div>
-
-    <div id="stato" style="margin-top:10px"></div>
-    <div id="percent" style="margin-top:10px; font-weight:bold;"></div>
-  </section>
+<div class="mob-bar">
+  <button class="btn btn-blue"  onclick="nextRandom()">🔀</button>
+  <button class="btn btn-muted" onclick="prev()">◀</button>
+  <button class="btn btn-blue"  onclick="nextSequential()">▶ Avanti</button>
+  <button class="btn btn-green" onclick="done()">✓</button>
 </div>
 
-<div class="card">
-  <section>
-    <h3>Filtri</h3>
-    <div class="row">
-      <div class="col"><label><input type="checkbox" id="onlyCritici"> Solo critici</label></div>
-      <div class="col"><label><input type="checkbox" id="menoSvolti" checked> Priorità meno svolti</label></div>
-      <div class="col"><label><input type="checkbox" id="escludiCritici"> Escludi critici</label></div>
-    </div>
-    <label>Argomenti:</label>
-    <select id="argomenti" multiple size="4" style="width:100%"></select>
-  </section>
-</div>
+<div class="page">
 
-<div class="card">
-  <section class="center">
-    <h3>Vai a numero</h3>
-    <div class="btn-row">
-      <input type="number" id="gotoNum" min="1" style="width:120px; text-align:center; margin-bottom:0;">
-      <button class="nav" onclick="gotoNumber()">Vai</button>
+  <!
+
+/* ── STRIP BUTTON COLORS ── */
+.c-blue {background:rgba(59,130,246,.18);color:#93c5fd;}
+.c-green{background:rgba(34,197,94,.18);color:#86efac;}
+.c-red  {background:rgba(239,68,68,.18);color:#fca5a5;}
+.c-amber{background:rgba(245,158,11,.12);color:#fcd34d;}
+.c-muted{background:var(--s2);color:var(--sub);}
+.c-teal {background:rgba(14,165,233,.18);color:#7dd3fc;}
+
+
+.c-green{background:rgba(34,197,94,.18);color:#86efac;}
+.c-red  {background:rgba(239,68,68,.18);color:#fca5a5;}
+.c-amber{background:rgba(245,158,11,.12);color:#fcd34d;}
+
+-- ═ LEFT ═ -->
+  <div class="col-l">
+    <div class="panel ex-card" id="ex-card">
+
+      <div class="ex-meta">
+        <div class="ex-num-wrap">
+          <span class="ex-lbl-n">N°</span>
+          <span id="numero">—</span>
+        </div>
+        <div class="ex-right">
+          <span class="carta-chip" id="carta-badge">—</span>
+          <div class="badge-row" id="badge-group"></div>
+        </div>
+      </div>
+
+      <div class="arg-bar" id="arg-tags"></div>
+
+      <!-- TESTO: altezza fissa, scroll interno -->
+      <div class="ex-testo-wrap">
+        <div id="testo">Caricamento…</div>
+      </div>
+
+      <div class="sol-bar" id="sol-bar" onclick="toggleSoluzione()">
+        <div class="sol-bar-left">
+          <span class="sol-chevron">▼</span>
+          <span class="sol-lbl">Soluzione</span>
+        </div>
+        <button class="btn btn-teal" style="padding:7px 13px;font-size:12px;"
+                onclick="event.stopPropagation();apriNauticando()">
+          🗺 Nauticando
+        </button>
+      </div>
+      <div id="soluzione"></div>
+
+      <div class="strip strip-3">
+        <button style="background:#0d2137;color:#38bdf8;font-weight:800;"  onclick="nextRandom()">🔀 Random</button>
+        <button style="background:#1a1a1a;color:#64748b;font-weight:700;"    onclick="prev()">◀ Indietro</button>
+        <button style="background:#0a1628;color:#818cf8;font-weight:800;" onclick="nextSequential()">Avanti ▶</button>
+      </div>
+      <div class="strip strip-2">
+        <button style="background:#052e16;color:#4ade80;font-weight:800;"    onclick="done()">✓ Segna svolto</button>
+        <button style="background:#300a0a;color:#f87171;font-weight:800;" onclick="toggleCritico()">⚠ Segna critico</button>
+      </div>
+      <div class="strip strip-2 strip-last">
+        <button style="background:#2d1f00;color:#fbbf24;font-weight:700;" onclick="resetSingolo()">↺ Reset esercizio</button>
+        <button style="background:#120a1e;color:#c084fc;font-weight:700;" onclick="resetGenerale()">🗑 Reset carta</button>
+      </div>
+
     </div>
-  </section>
-</div>
-<div class="card">
-  <section>
-    <h3>Gestione Carta</h3>
-    <div class="row">
-      <div class="col">
-        <label>Carta attiva:</label>
+
+    <p class="kbhint" id="kb-hint">
+      <kbd class="kbd">←</kbd> indietro &nbsp;
+      <kbd class="kbd">→</kbd> avanti &nbsp;
+      <kbd class="kbd">Space</kbd> soluzione &nbsp;
+      <kbd class="kbd">D</kbd> svolto &nbsp;
+      <kbd class="kbd">C</kbd> critico &nbsp;
+      <kbd class="kbd">R</kbd> random
+    </p>
+  </div>
+
+  <!-- ═ RIGHT ═ -->
+  <div class="col-r">
+
+    <div class="stat-bar">
+      <div class="stat-item"><div class="stat-val c-g" id="stat-done">0</div><div class="stat-key">Svolti</div></div>
+      <div class="stat-item"><div class="stat-val c-r" id="stat-crit">0</div><div class="stat-key">Critici</div></div>
+      <div class="stat-item"><div class="stat-val c-b" id="stat-tot">0</div> <div class="stat-key">Totale</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body">
+        <div class="sec-lbl">🔍 Filtri</div>
+        <div class="cb-list">
+          <label class="cb-item"><input type="checkbox" id="onlyCritici"> Solo critici</label>
+          <label class="cb-item"><input type="checkbox" id="menoSvolti" checked> Priorità meno svolti</label>
+          <label class="cb-item"><input type="checkbox" id="escludiCritici"> Escludi critici</label>
+        </div>
+        <div class="divider"></div>
+        <label class="field-lbl">Argomenti</label>
+        <select id="argomenti" multiple size="5" onchange="onArgomentiChange()"></select>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body">
+        <div class="sec-lbl">🔢 Vai a numero</div>
+        <div class="goto-row">
+          <input type="number" id="gotoNum" min="1" placeholder="N° esercizio"
+                 onkeydown="if(event.key==='Enter')gotoNumber()">
+          <button class="btn btn-blue" onclick="gotoNumber()">Vai</button>
+        </div>
+        <div class="divider"></div>
+        <label class="field-lbl">📋 Carta attiva</label>
         <select id="carta" onchange="switchCarta()"></select>
       </div>
     </div>
-  </section>
-</div>
 
-
-<div class="card">
-  <section>
-    <h3>Sincronizzazione</h3>
-    <div class="row">
-      <div class="col">
-        <label>GitHub Token (opzionale):</label>
-        <input type="password" id="githubTokenInput" placeholder="Inserisci token per sync" class="token-input" style="background:#222; color:#eee; border:1px solid #333; padding:10px 14px; font-size:16px; border-radius:8px; box-sizing:border-box;">
+    <div class="panel">
+      <div class="panel-body">
+        <div class="sec-lbl">☁ Sincronizzazione</div>
+        <label class="field-lbl">GitHub Token (opzionale)</label>
+        <input type="password" id="githubTokenInput" placeholder="Inserisci token" style="margin-bottom:10px;">
+        <button id="syncBtn" class="btn btn-green" onclick="toggleSync()" style="width:100%;">
+          🔄 Sincronizzazione OFF
+        </button>
+        <p class="sync-note">Inserisci un GitHub Personal Access Token per abilitare la sincronizzazione. Le statistiche vengono salvate e sincronizzate tra tutti i dispositivi.</p>
       </div>
     </div>
-    <div class="btn-row">
-      <button id="syncBtn" class="done" onclick="toggleSync()">🔄 Sincronizzazione OFF</button>
+
+    <div class="panel">
+      <div class="panel-body">
+        <div class="sec-lbl">📝 Genera lista</div>
+        <label class="field-lbl">Numero minimo svolto</label>
+        <input type="number" id="minDone" value="0" min="0" style="margin-bottom:10px;">
+        <div class="g2">
+          <button class="btn btn-blue"  onclick="generaLista()">Genera</button>
+          <button class="btn btn-muted" onclick="copiaLista()">Copia</button>
+        </div>
+        <div id="countLista"></div>
+        <textarea id="lista"></textarea>
+      </div>
     </div>
-    <p style="font-size:14px; margin-top:10px; color:#999;">
-      Inserisci un GitHub Personal Access Token per abilitare la sincronizzazione<br>
-      Le statistiche vengono salvate e sincronizzate tra tutti i dispositivi
-    </p>
-  </section>
+
+  </div>
 </div>
 
-<div class="card">
-  <section>
-    <h3>Genera lista</h3>
-    <label>Numero minimo svolto:</label>
-    <input type="number" id="minDone" value="0" min="0" style="width:120px"><br><br>
-    <div class="btn-row">
-      <button class="nav" onclick="generaLista()">Genera</button>
-      <button class="nav" onclick="copiaLista()">Copia</button>
-    </div>
-    <div id="countLista" style="margin-bottom:10px"></div>
-    <textarea id="lista"></textarea>
-  </section>
-</div>
-
-</div>
+<div id="stato"  style="display:none;"></div>
+<div id="percent" style="display:none;"></div>
 
 <script>
 let esercizi = [], idx = 0;
@@ -142,6 +434,8 @@ let syncEnabled = true;
 let githubToken = ''; // Inserisci il tuo Personal Access Token di GitHub o lascia vuoto per disabilitare sync
 
 // Dati delle carte inseriti direttamente nel codice
+
+// Dati delle carte
 const datiCarte = {
   '5D': [
     {
@@ -762,10 +1056,12 @@ const datiCarte = {
         "soluzione": "Pb = 176° ÷ 182°",
         "argomenti": [
             "navigazione",
-            "costiera"
+            "costiera", 
+            "tabella"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "62",
@@ -773,10 +1069,12 @@ const datiCarte = {
         "soluzione": "Pb = 133° ÷ 139°",
         "argomenti": [
             "navigazione",
-            "costiera"
+            "costiera", 
+            "tabella"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "63",
@@ -907,10 +1205,12 @@ const datiCarte = {
         "testo": "Nell’anno 2000, l’imbarcazione “Rigel” alle ore 19h40m si trova sul punto A individuato dall’intersezione del rilevamento vero Rilv = 119° del Faro di P.ta del Fenaio (Lam.(3)15s39m16M) (Isola del Giglio) e la batimetrica dei 200 metri.\r\nDal punto A, l’imbarcazione procede con prora bussola Pb = 069° (deviazione letta nella tabella di borso δ = - 4°) e con velocità propulsiva Vp = 6 kn verso il punto B, situato a 0,5 miglia nautiche a S del Faro di Talamone (Lam.(2)10s30m15M).\r\nIl valore di declinazione nel 1994 è: 0° 30’ E (variazione annua 7’ E)\r\nAlle ore 21h00m, al fine di verificare gli elementi del moto presenti in zona, l’unità determina la posizione (punto C) osservando simultaneamente il Faro di P.ta del Fenaio (Lam.(3)15s39m16M) per rilevamento bussola Rilb = 195° e il Faro di Punta Lividonia (Lam.5s47m16M) per rilevamento bussola Rilb = 107°. Determinare la rotta vera Rv.",
         "soluzione": "Rv = 055° ÷ 061°",
         "argomenti": [
-            "correnti"
+            "correnti", 
+            "tabella"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "76",
@@ -1340,10 +1640,12 @@ const datiCarte = {
         "soluzione": "Ora traverso: 12h31m ÷ 12h37m",
         "argomenti": [
             "navigazione",
-            "costiera"
+            "costiera", 
+            "tabella"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "10",
@@ -1444,10 +1746,12 @@ const datiCarte = {
         "testo": "Nel 2008 siete in navigazione a bordo dell’imbarcazione “Canopo” ad E\r\ndell’Isola Tavolara, alla velocità propulsiva Vp di 7 kn e con prora bussola Pb =\r\n348°.\r\nAlle ore 05h30m determinate la vostra posizione attraverso l’osservazione simultanea dei rilevamenti bussola del Faro di P.ta Timone (Lam.L.(2)10s72m15M) per Rilb = 242° e del Faro dell’Isola di Figarolo (Lam.5s71m11M) per Rilb = 283° (punto A).\r\nIn zona vi è una corrente dalle seguenti caratteristiche Dc = 100° e Vc =1,5 kn. Il valore di declinazione riportato sulla carta nautica è: 0° 10’ E 1993 (7’ E) Considerando che gli elementi perturbatori del moto restano invariati, determinare la rotta vera Rv.  PER LA RISOLUZIONE DEL QUESITO E' NECESSARIO UTILIZZARE LA TABELLA DELLE DEVIAZIONI ALLEGATA",
         "soluzione": "Rv = 357° ÷ 003°",
         "argomenti": [
-            "correnti"
+            "correnti", 
+            "tabella"
         ],
         "done": 0,
-        "crit": false
+        "crit": false,
+        "tabella": true
     },
     {
         "id": "20",
@@ -1538,7 +1842,14 @@ const datiCarte = {
 function storageKey(carta){ return 'exdata_' + carta; }
 
 function loadCartaData(carta) {
-  const data = datiCarte[carta] || [];
+  let data;
+  if(carta === 'TUTTE') {
+    // Combina dati da entrambe le carte mantenendo l'ordine: prima 5D, poi 42D
+    data = [...(datiCarte['5D'] || []), ...(datiCarte['42D'] || [])];
+  } else {
+    data = datiCarte[carta] || [];
+  }
+  
   esercizi = data.map(r => ({
     id: String(r.id).trim(),
     testo: (r.testo||"").toString().trim(),
@@ -1549,20 +1860,48 @@ function loadCartaData(carta) {
   }));
   
   // Carica statistiche salvate nel localStorage
-  const key = storageKey(carta);
-  const saved = localStorage.getItem(key);
-  if(saved) {
-    try{
-      const savedData = JSON.parse(saved);
-      // Unisci i dati base con le statistiche salvate
-      esercizi.forEach(e => {
-        const savedItem = savedData.find(s => s.id === e.id);
-        if(savedItem) {
-          e.done = savedItem.done || 0;
-          e.crit = savedItem.crit || false;
-        }
-      });
-    }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+  if(carta === 'TUTTE') {
+    // Per TUTTE, dobbiamo fare il match esatto basato su ID e contenuto per evitare conflitti
+    ['5D','42D'].forEach(card => {
+      const key = storageKey(card);
+      const saved = localStorage.getItem(key);
+      if(saved) {
+        try{
+          const savedData = JSON.parse(saved);
+          // Unisci i dati base con le statistiche salvate facendo match esatto
+          esercizi.forEach(e => {
+            // Cerca l'esercizio corrispondente nei dati originali di questa carta
+            const originalExercise = datiCarte[card]?.find(d => 
+              String(d.id) === String(e.id) && 
+              d.testo === e.testo
+            );
+            if(originalExercise) {
+              const savedItem = savedData.find(s => String(s.id) === String(e.id));
+              if(savedItem) {
+                e.done = savedItem.done || 0;
+                e.crit = savedItem.crit || false;
+              }
+            }
+          });
+        }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+      }
+    });
+  } else {
+    const key = storageKey(carta);
+    const saved = localStorage.getItem(key);
+    if(saved) {
+      try{
+        const savedData = JSON.parse(saved);
+        // Unisci i dati base con le statistiche salvate
+        esercizi.forEach(e => {
+          const savedItem = savedData.find(s => s.id === e.id);
+          if(savedItem) {
+            e.done = savedItem.done || 0;
+            e.crit = savedItem.crit || false;
+          }
+        });
+      }catch(e){ console.warn('Errore caricamento statistiche:', e); }
+    }
   }
   
   saveToStorage();
@@ -1573,8 +1912,18 @@ function loadCartaData(carta) {
 
 function saveToStorage(){
   const carta = document.getElementById('carta').value;
-  const key = storageKey(carta);
-  localStorage.setItem(key, JSON.stringify(esercizi));
+  
+  if(carta === 'TUTTE') {
+    // Salva le statistiche nelle singole carte
+    ['5D','42D'].forEach(card => {
+      const cardExercises = esercizi.filter(e => datiCarte[card]?.some(d => String(d.id) === String(e.id)));
+      const key = storageKey(card);
+      localStorage.setItem(key, JSON.stringify(cardExercises));
+    });
+  } else {
+    const key = storageKey(carta);
+    localStorage.setItem(key, JSON.stringify(esercizi));
+  }
   
   // Sincronizzazione con GitHub Gist
   if(syncEnabled && gistId) {
@@ -1682,6 +2031,7 @@ function filtered(){
   let list=[...esercizi];
   if(document.getElementById('onlyCritici').checked) list=list.filter(e=>e.crit);
   if(document.getElementById('escludiCritici').checked) list=list.filter(e=>!e.crit);
+  if(document.getElementById('menoSvolti').checked){ const minDone=Math.min(...list.map(x=>x.done)); list=list.filter(x=>x.done===minDone); }
   const sel=document.getElementById('argomenti');
   const selected=Array.from(sel.selectedOptions).map(o=>o.value);
   if(selected.length && !(selected.length===1 && selected[0]==='__ALL__')){
@@ -1690,54 +2040,104 @@ function filtered(){
   return list;
 }
 
+function getCardOfExercise(exerciseId) {
+  const id = String(exerciseId);
+  if(datiCarte['5D']?.some(e => String(e.id) === id)) return '5D';
+  if(datiCarte['42D']?.some(e => String(e.id) === id)) return '42D';
+  return '?';
+}
+
 function show(e){
   if(!e) return;
   idx=esercizi.indexOf(e);
-  document.getElementById('numero').innerText=e.id;
-  document.getElementById('stato').innerHTML=(e.crit?'<span class="badge crit">Critico</span>':'')+(e.done>0?'<span class="badge done">Svolto '+e.done+'x</span>':'');
+  
+  // Determine which card this exercise belongs to
+  const cardOfExercise = getCardOfExercise(e.id);
+  document.getElementById('numero').innerText = e.id + ' [' + cardOfExercise + ']';
+  
   document.getElementById('testo').innerText=e.testo||'(vuoto)';
-  const solDiv=document.getElementById('soluzione'); solDiv.style.display='none'; solDiv.innerText=e.soluzione||'(vuoto)';
+  // soluzione: chiudi e precarica
+  const solDiv=document.getElementById('soluzione');
+  solDiv.style.display='none';
+  solDiv.innerText=e.soluzione||'(vuoto)';
+  const solBar=document.getElementById('sol-bar');
+  if(solBar) solBar.classList.remove('sol-open');
+  // badges
+  const bg=document.getElementById('badge-group');
+  if(bg){
+    bg.innerHTML='';
+    if(e.crit)   bg.innerHTML+='<span class="badge badge-crit">⚠ Critico</span>';
+    if(e.done>0) bg.innerHTML+='<span class="badge badge-done">✓ Svolto '+e.done+'×</span>';
+  }
+  // argomenti
+  const at=document.getElementById('arg-tags');
+  if(at) at.innerHTML=(e.argomenti||[]).map(a=>'<span class="arg-pill">'+a+'</span>').join('');
+  // card border state
+  const card=document.getElementById('ex-card');
+  if(card){
+    card.classList.remove('st-crit','st-done');
+    if(e.crit)        card.classList.add('st-crit');
+    else if(e.done>0) card.classList.add('st-done');
+  }
+  // carta badge
+  const cartaSel=document.getElementById('carta');
+  const cb=document.getElementById('carta-badge');
+  if(cb&&cartaSel) cb.textContent=cartaSel.value;
+  // legacy stato (non usato ma presente)
+  const stato=document.getElementById('stato');
+  if(stato) stato.innerHTML='';
   updatePercent();
+}
+
+function onArgomentiChange(){
+  const list=filtered();
+  if(!list.length) return;
+  const currentId=String(esercizi[idx]?.id);
+  if(!list.find(e=>String(e.id)===currentId)) show(list[0]);
 }
 
 function nextRandom(){
   let list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
-  if(document.getElementById('menoSvolti').checked){ const minDone=Math.min(...list.map(x=>x.done)); list=list.filter(x=>x.done===minDone); }
   show(list[Math.floor(Math.random()*list.length)]);
 }
 
 function nextSequential(){
   const list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
-  let p=list.findIndex(e=>e.id===esercizi[idx]?.id); if(p===-1) p=0;
+  const currentId=String(esercizi[idx]?.id);
+  let p=list.findIndex(e=>String(e.id)===currentId);
+  if(p===-1) p=-1;
   show(list[(p+1)%list.length]);
 }
 
 function prev(){
   const list=filtered();
   if(!list.length) return alert("Nessun esercizio disponibile.");
-  let p=list.findIndex(e=>e.id===esercizi[idx]?.id); if(p===-1)p=0;
+  const currentId=String(esercizi[idx]?.id);
+  let p=list.findIndex(e=>String(e.id)===currentId);
+  if(p===-1) p=0;
   show(list[(p-1+list.length)%list.length]);
 }
 
 function toggleSoluzione(){
   const sol=document.getElementById('soluzione');
-  sol.style.display=(sol.style.display==='none')?'block':'none';
+  const bar=document.getElementById('sol-bar');
+  const open=sol.style.display==='block';
+  sol.style.display=open?'none':'block';
+  if(bar) bar.classList.toggle('sol-open',!open);
 }
 
-function apriNauticando() {
-  const cartaAttiva = document.getElementById('carta').value;
-  const esercizioCorrente = esercizi[idx];
-  if (!esercizioCorrente) return;
-  
-  const numeroEsercizio = esercizioCorrente.id.padStart(2, '0');
-  const url = `https://www.nauticando.net/carteggio-nautico/oltre-12-miglia-MIMS/carta-${cartaAttiva.toLowerCase()}-${numeroEsercizio}`;
-  window.open(url, '_blank');
+function apriNauticando(){
+  const carta=document.getElementById('carta').value;
+  const e=esercizi[idx]; if(!e) return;
+  const n=parseInt(e.id);
+  const num=n<10?String(n):e.id.padStart(2,'0');
+  window.open('https://www.nauticando.net/carteggio-nautico/oltre-12-miglia-MIMS/carta-'+carta.toLowerCase()+'-'+num,'_blank');
 }
 
-function done(){ if(!esercizi[idx]) return; esercizi[idx].done=(esercizi[idx].done||0)+1; saveToStorage(); show(esercizi[idx]); }
-function toggleCritico(){ if(!esercizi[idx]) return; esercizi[idx].crit=!esercizi[idx].crit; saveToStorage(); show(esercizi[idx]); }
+function done(){ if(!esercizi[idx]) return; esercizi[idx].done=(esercizi[idx].done||0)+1; saveToStorage(); show(esercizi[idx]); toast('✓ Svolto!'); }
+function toggleCritico(){ if(!esercizi[idx]) return; esercizi[idx].crit=!esercizi[idx].crit; saveToStorage(); show(esercizi[idx]); toast(esercizi[idx].crit?'⚠ Critico attivato':'✓ Critico rimosso'); }
 function resetSingolo(){ if(!esercizi[idx]) return; esercizi[idx].done=0; esercizi[idx].crit=false; saveToStorage(); show(esercizi[idx]); }
 function resetGenerale(){ if(!confirm("Reset COMPLETO della carta?")) return; esercizi.forEach(e=>{e.done=0;e.crit=false;}); saveToStorage(); if(esercizi.length) show(esercizi[0]); updatePercent(); }
 
@@ -1749,12 +2149,24 @@ function gotoNumber(){
   show(e);
 }
 
-function updatePercent(){ const doneCount=esercizi.filter(e=>e.done>0).length; document.getElementById('percent').innerText=`Avanzamento: ${doneCount}/${esercizi.length} (${esercizi.length?Math.round(doneCount/esercizi.length*100):0}%)`; }
+function updatePercent(){
+  const dn=esercizi.filter(e=>e.done>0).length;
+  const cr=esercizi.filter(e=>e.crit).length;
+  const tot=esercizi.length;
+  const pct=tot?Math.round(dn/tot*100):0;
+  const pe=document.getElementById('percent'); if(pe) pe.innerText=dn+'/'+tot+' ('+pct+'%)';
+  const pf=document.getElementById('prog-fill'); if(pf) pf.style.width=pct+'%';
+  const pt=document.getElementById('prog-txt');  if(pt) pt.textContent=dn+' / '+tot;
+  const sd=document.getElementById('stat-done'); if(sd) sd.textContent=dn;
+  const sc=document.getElementById('stat-crit'); if(sc) sc.textContent=cr;
+  const st=document.getElementById('stat-tot');  if(st) st.textContent=tot;
+}
 
 (function init(){
   document.getElementById('carta').innerHTML='';
+  const optAll=document.createElement('option'); optAll.value='TUTTE'; optAll.text='TUTTE'; document.getElementById('carta').appendChild(optAll);
   ['5D','42D'].forEach(c=>{const opt=document.createElement('option'); opt.value=c; opt.text=c; document.getElementById('carta').appendChild(opt);});
-  document.getElementById('carta').value='5D';
+  document.getElementById('carta').value='TUTTE';
   
   // Carica token salvato
   const savedToken = localStorage.getItem('githubToken');
@@ -1800,6 +2212,50 @@ function toggleSync() {
   }
   updateSyncButton();
 }
+
+
+/* ── TOAST ── */
+let _toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  if(!el) return;
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+/* ── KEYBOARD SHORTCUTS ── */
+document.addEventListener('keydown',ev=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(ev.target.tagName)) return;
+  if(ev.key==='ArrowRight')           nextSequential();
+  else if(ev.key==='ArrowLeft')       prev();
+  else if(ev.key===' ')               { ev.preventDefault(); toggleSoluzione(); }
+  else if(ev.key==='d'||ev.key==='D') done();
+  else if(ev.key==='c'||ev.key==='C') toggleCritico();
+  else if(ev.key==='r'||ev.key==='R') nextRandom();
+});
+
+/* ── SWIPE ── */
+(function(){
+  let sx,sy;
+  const card=document.getElementById('ex-card');
+  if(!card) return;
+  card.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  card.addEventListener('touchend',e=>{
+    if(sx===undefined) return;
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)+20&&Math.abs(dx)>50){ dx<0?nextSequential():prev(); }
+    sx=undefined;
+  },{passive:true});
+})();
+
+/* ── KB HINT ── */
+if(window.innerWidth>720){
+  const kbh=document.getElementById('kb-hint');
+  if(kbh) kbh.style.display='block';
+}
+
 </script>
 </body>
 </html>
