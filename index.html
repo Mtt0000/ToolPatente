@@ -2701,6 +2701,21 @@
         }
 
 
+        function generaLista() {
+            const minDone = parseInt(document.getElementById('minDone').value) || 0;
+            const filtered = esercizi.filter(e => e.done >= minDone);
+            const lista = filtered.map(e => `N° ${e.id} - ${e.testo.substring(0, 100)}...`).join('\n\n');
+            document.getElementById('lista').value = lista;
+            document.getElementById('countLista').textContent = `${filtered.length} esercizi trovati`;
+        }
+
+        function copiaLista() {
+            const textarea = document.getElementById('lista');
+            textarea.select();
+            document.execCommand('copy');
+            toast('📋 Lista copiata negli appunti!');
+        }
+
         /* ── GITHUB TOKEN GUIDE ── */
         function showTokenGuide() {
             const guideContent = `
